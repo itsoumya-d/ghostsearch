@@ -124,9 +124,15 @@ export class SearchEngine<T extends GhostDocument> {
   }
 
   suggest(query: string, limit: number = 5): string[] {
-    const results = this.index.search(query, { limit, suggest: true });
-    // basic mock of suggest since flexsearch suggest returns docs
-    return []; // For real suggest we need a specialized trie or dictionary
+    const results = this.search(query, { limit });
+    const suggestions = results.hits
+      .map(hit => {
+        const doc = hit.document as any;
+        return doc.title || doc.name || doc[this.options.fields[0]];
+      })
+      .filter(val => typeof val === 'string');
+      
+    return Array.from(new Set(suggestions)).slice(0, limit);
   }
 
   get count(): number {
@@ -139,8 +145,7 @@ export class SearchEngine<T extends GhostDocument> {
   }
 
   export(): string {
-    const data: any = { documents: Array.from(this.documents.entries()), indexData: {} };
-    // FlexSearch async export workaround for sync need, might require tweaking
+    const data = { documents: Array.from(this.documents.entries()) };
     return JSON.stringify(data);
   }
 
