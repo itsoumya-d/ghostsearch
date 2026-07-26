@@ -1,505 +1,1173 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GhostSearch | Sub-millisecond Client-Side Search</title>
-    <meta name="description" content="GhostSearch is a lightning-fast, zero-cookie, client-side search engine. Stop paying for Algolia and run 10k+ records in the browser with <1ms latency.">
+    <title>GhostSearch — Client-Side Full-Text Search</title>
+    <meta name="description" content="GhostSearch is the best free Algolia alternative. Search 100K docs in <1ms. Client-side full-text search with zero servers.">
     <meta name="robots" content="index, follow">
-    <meta property="og:title" content="GhostSearch | Sub-millisecond Client-Side Search">
-    <meta property="og:description" content="Lightning-fast, zero-cookie, client-side search engine.">
-    <meta property="og:image" content="https://itsoumya-d.github.io/ghostsearch/og-image.png">
-    <meta name="twitter:card" content="summary_large_image">
-    <link rel="canonical" href="https://itsoumya-d.github.io/ghostsearch/">
-    
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
-    
-    <!-- Tailwind -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        background: '#0B0C10',
-                        primary: '#CCFF00',
-                        secondary: '#BD93F9',
-                        accent: '#45F3FF',
-                        panel: 'rgba(11, 12, 16, 0.65)'
-                    },
-                    fontFamily: {
-                        sans: ['Outfit', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace'],
-                    },
-                    boxShadow: {
-                        'glow-primary': '0 0 15px rgba(204, 255, 0, 0.4)',
-                        'glow-accent': '0 0 15px rgba(69, 243, 255, 0.4)',
-                    }
-                }
-            }
-        }
-    </script>
-    
-    <style>
-        body {
-            background-color: #0B0C10;
-            color: #E2E8F0;
-            background-image: 
-                radial-gradient(circle at 15% 50%, rgba(204, 255, 0, 0.04) 0%, transparent 50%),
-                radial-gradient(circle at 85% 30%, rgba(189, 147, 249, 0.04) 0%, transparent 50%);
-            overflow-x: hidden;
-        }
-        
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.02);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-        }
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
 
-        .text-glow {
-            text-shadow: 0 0 10px rgba(204, 255, 0, 0.5);
-        }
-
-        .highlight-term {
-            background-color: rgba(204, 255, 0, 0.2);
-            color: #CCFF00;
-            font-weight: bold;
-            padding: 0 2px;
-            border-radius: 2px;
-        }
-
-        /* Custom Scrollbar for demo */
-        .demo-scroll::-webkit-scrollbar {
-            width: 6px;
-        }
-        .demo-scroll::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.2);
-        }
-        .demo-scroll::-webkit-scrollbar-thumb {
-            background: #BD93F9;
-            border-radius: 3px;
-        }
-
-        /* Range Slider */
-        input[type=range] {
-            -webkit-appearance: none;
-            width: 100%;
-            background: transparent;
-        }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 20px;
-            width: 20px;
-            border-radius: 50%;
-            background: #CCFF00;
-            cursor: pointer;
-            margin-top: -8px;
-            box-shadow: 0 0 10px rgba(204, 255, 0, 0.8);
-        }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 4px;
-            cursor: pointer;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 2px;
-        }
-    </style>
-
-    <!-- Schema.org JSON-LD -->
     <script type="application/ld+json">
     {
-        "@context": "https://schema.org",
-        "@graph": [
-            {
-                "@type": "SoftwareApplication",
-                "name": "GhostSearch",
-                "applicationCategory": "DeveloperApplication",
-                "operatingSystem": "Any",
-                "description": "Lightning-fast, client-side search engine capable of sub-millisecond querying of 10k+ records entirely in the browser.",
-                "offers": {
-                    "@type": "Offer",
-                    "price": "0",
-                    "priceCurrency": "USD"
-                },
-                "author": {
-                    "@type": "Person",
-                    "name": "Soumya Debnath",
-                    "email": "soumyadebnath1661@gmail.com",
-                    "telephone": "+91 7031648617"
-                }
-            },
-            {
-                "@type": "FAQPage",
-                "mainEntity": [{
-                    "@type": "Question",
-                    "name": "How does GhostSearch achieve <1ms latency?",
-                    "acceptedAnswer": {
-                        "@type": "Answer",
-                        "text": "GhostSearch leverages highly optimized index structures using FlexSearch under the hood, running entirely client-side. No network round-trips."
-                    }
-                }, {
-                    "@type": "Question",
-                    "name": "Is GhostSearch free?",
-                    "acceptedAnswer": {
-                        "@type": "Answer",
-                        "text": "Yes, GhostSearch is provided under the BSL 1.1 license and requires zero backend costs compared to traditional SaaS like Algolia."
-                    }
-                }]
-            },
-            {
-                "@type": "BreadcrumbList",
-                "itemListElement": [{
-                    "@type": "ListItem",
-                    "position": 1,
-                    "name": "Home",
-                    "item": "https://itsoumya-d.github.io/ghostsearch/"
-                }]
-            }
-        ]
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "GhostSearch",
+      "applicationCategory": "DeveloperApplication",
+      "offers": {
+        "@type": "Offer",
+        "price": "0.00",
+        "priceCurrency": "USD"
+      }
     }
     </script>
-</head>
-<body class="antialiased min-h-screen flex flex-col">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is the best free alternative to Algolia?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "GhostSearch is the best free Algolia alternative for static sites and client-side applications. It runs entirely in the browser, meaning zero server costs, while still delivering sub-millisecond search performance on datasets up to 100K documents."
+          }
+        }
+      ]
+    }
+    </script>
 
-    <!-- Nav -->
-    <nav class="w-full glass-panel fixed top-0 z-50 border-b border-white/10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-2 font-mono text-xl font-bold tracking-tighter">
-                <span class="text-primary">Ghost</span><span class="text-white">Search</span><span class="text-accent animate-pulse">_</span>
-            </div>
-            <div class="hidden md:flex gap-6 font-mono text-sm">
-                <a href="#demo" class="hover:text-primary transition-colors">/demo</a>
-                <a href="#roi" class="hover:text-primary transition-colors">/roi</a>
-                <a href="#docs" class="hover:text-primary transition-colors">/docs</a>
-                <a href="#faq" class="hover:text-primary transition-colors">/faq</a>
+    <style>
+        :root {
+            --bg: #0B0C10;
+            --primary: #CCFF00;
+            --secondary: #BD93F9;
+            --tertiary: #45F3FF;
+            --text-body: #C9D1D9;
+            --text-heading: #E6EDF3;
+            
+            --font-mono: 'JetBrains Mono', monospace;
+            --font-sans: 'Outfit', sans-serif;
+            
+            --border-subtle: rgba(255, 255, 255, 0.06);
+            --card-bg: rgba(255, 255, 255, 0.02);
+            --card-hover: rgba(255, 255, 255, 0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-body);
+            font-family: var(--font-sans);
+            font-weight: 300;
+            line-height: 1.5;
+            overflow-x: hidden;
+            /* Dot Grid Pattern */
+            background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-mono);
+            font-weight: 700;
+            color: var(--text-heading);
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+
+        a {
+            color: var(--tertiary);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        a:hover {
+            color: var(--primary);
+        }
+
+        /* Layout */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        section {
+            padding: 120px 0;
+            position: relative;
+        }
+
+        @media (max-width: 768px) {
+            section {
+                padding: 80px 0;
+            }
+        }
+
+        /* Fixed Nav */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            height: 64px;
+            background: rgba(11, 12, 16, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-subtle);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .logo {
+            font-family: var(--font-mono);
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-heading);
+        }
+        
+        .logo span {
+            color: var(--primary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+        }
+        
+        .nav-links a {
+            font-size: 14px;
+            font-family: var(--font-mono);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 48px;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-family: var(--font-mono);
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--bg);
+            border: none;
+            box-shadow: 0 0 20px rgba(204, 255, 0, 0.15);
+        }
+        
+        .btn-primary:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 30px rgba(204, 255, 0, 0.3);
+            color: var(--bg);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-heading);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-heading);
+        }
+
+        /* Hero */
+        .hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding-top: 64px;
+        }
+
+        .hero h1 {
+            font-size: 64px;
+            max-width: 900px;
+            margin-bottom: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 40px;
+            }
+        }
+
+        .hero p {
+            font-size: 20px;
+            max-width: 600px;
+            margin-bottom: 48px;
+            color: var(--text-body);
+        }
+        
+        .cursor-blink {
+            display: inline-block;
+            width: 14px;
+            height: 1em;
+            background-color: var(--primary);
+            vertical-align: text-bottom;
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        /* Live Search Demo */
+        .search-demo {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+            text-align: left;
+        }
+
+        .search-input-wrapper {
+            position: relative;
+            margin-bottom: 16px;
+        }
+
+        .search-input {
+            width: 100%;
+            height: 64px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 0 24px;
+            font-family: var(--font-mono);
+            font-size: 16px;
+            color: var(--primary);
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(204, 255, 0, 0.1);
+        }
+
+        .search-input::placeholder {
+            color: rgba(201, 209, 217, 0.3);
+        }
+        
+        .search-results {
+            background: rgba(11, 12, 16, 0.95);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
+            position: absolute;
+            width: 100%;
+            z-index: 10;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+        
+        .search-result-item {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-subtle);
+            font-family: var(--font-mono);
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-result-item:hover {
+            background: var(--card-hover);
+        }
+
+        .match-highlight {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        /* Benchmark Bar */
+        .benchmarks {
+            border-top: 1px solid var(--border-subtle);
+            border-bottom: 1px solid var(--border-subtle);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 64px 0;
+        }
+
+        .benchmarks-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .benchmarks-grid {
+                grid-template-columns: 1fr;
+                gap: 48px;
+            }
+        }
+
+        .stat-value {
+            font-family: var(--font-mono);
+            font-size: 48px;
+            color: var(--text-heading);
+            margin-bottom: 8px;
+        }
+        
+        .stat-value span {
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-body);
+        }
+
+        /* Section Headers */
+        .section-header {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+
+        .section-header h2 {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 9999px;
+            border: 1px solid var(--secondary);
+            color: var(--secondary);
+            font-family: var(--font-mono);
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 24px;
+            background: rgba(189, 147, 249, 0.1);
+        }
+
+        /* Cost Matrix */
+        .cost-matrix {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .cost-matrix {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 48px 32px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            background: var(--card-hover);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .card.highlight {
+            border-color: rgba(204, 255, 0, 0.3);
+            background: linear-gradient(180deg, rgba(204, 255, 0, 0.05) 0%, rgba(0,0,0,0) 100%);
+        }
+
+        .card h3 {
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+
+        .price-tag {
+            font-family: var(--font-mono);
+            font-size: 32px;
+            color: var(--text-heading);
+            margin-bottom: 24px;
+            display: block;
+        }
+
+        .card.highlight .price-tag {
+            color: var(--primary);
+        }
+
+        .feature-list {
+            list-style: none;
+            margin-bottom: 32px;
+        }
+
+        .feature-list li {
+            margin-bottom: 12px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+        }
+
+        .feature-list li::before {
+            content: '→';
+            color: var(--secondary);
+            margin-right: 12px;
+            font-family: var(--font-mono);
+        }
+
+        /* Architecture Flow */
+        .arch-flow {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 24px;
+            position: relative;
+        }
+        
+        .arch-step {
+            flex: 1;
+            text-align: center;
+            padding: 48px 24px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            z-index: 2;
+        }
+
+        .arch-icon {
+            font-size: 32px;
+            margin-bottom: 24px;
+            color: var(--secondary);
+        }
+
+        .arch-step h3 {
+            font-size: 20px;
+            margin-bottom: 12px;
+        }
+
+        .arch-step p {
+            font-size: 14px;
+            color: var(--text-body);
+        }
+
+        @media (max-width: 768px) {
+            .arch-flow {
+                flex-direction: column;
+            }
+        }
+
+        /* Code Playground */
+        .code-window {
+            background: #111116;
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        .code-header {
+            display: flex;
+            padding: 16px 24px;
+            background: rgba(0,0,0,0.3);
+            border-bottom: 1px solid var(--border-subtle);
+            gap: 8px;
+        }
+
+        .mac-btn {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .mac-close { background: #FF5F56; }
+        .mac-min { background: #FFBD2E; }
+        .mac-max { background: #27C93F; }
+
+        .tabs {
+            display: flex;
+            margin-left: 24px;
+            gap: 16px;
+        }
+
+        .tab {
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: rgba(255,255,255,0.4);
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .tab.active {
+            color: var(--primary);
+        }
+
+        .code-content {
+            padding: 24px;
+            font-family: var(--font-mono);
+            font-size: 14px;
+            line-height: 1.6;
+            overflow-x: auto;
+        }
+
+        .code-keyword { color: #FF7B72; }
+        .code-string { color: #A5D6FF; }
+        .code-func { color: #D2A8FF; }
+        .code-comment { color: #8B949E; }
+        
+        .code-pane { display: none; }
+        .code-pane.active { display: block; }
+
+        /* Features Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        /* FAQ */
+        .faq-item {
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 24px 0;
+            cursor: pointer;
+        }
+        
+        .faq-item:first-child {
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .faq-question {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: var(--font-mono);
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-heading);
+        }
+
+        .faq-icon {
+            color: var(--secondary);
+            font-size: 24px;
+            transition: transform 0.3s ease;
+        }
+        
+        .faq-item.active .faq-icon {
+            transform: rotate(45deg);
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease;
+            color: var(--text-body);
+            padding-top: 0;
+        }
+        
+        .faq-item.active .faq-answer {
+            padding-top: 16px;
+            max-height: 300px;
+        }
+        
+        .faq-answer p {
+            margin-bottom: 16px;
+        }
+
+        /* Footer */
+        footer {
+            background: #050508;
+            padding: 80px 0 40px;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 48px;
+            margin-bottom: 64px;
+        }
+        
+        @media (max-width: 768px) {
+            .footer-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .footer-logo {
+            font-family: var(--font-mono);
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--text-heading);
+        }
+
+        .footer-links h4 {
+            margin-bottom: 24px;
+            font-size: 14px;
+            text-transform: uppercase;
+            color: var(--text-heading);
+        }
+        
+        .footer-links ul {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+        
+        .footer-links a {
+            font-size: 14px;
+            color: var(--text-body);
+        }
+
+        .footer-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-subtle);
+            font-size: 12px;
+            color: rgba(201, 209, 217, 0.5);
+            font-family: var(--font-mono);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Fixed Nav -->
+    <nav>
+        <div class="container nav-inner">
+            <div class="logo">Ghost<span>Search</span></div>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#docs">Docs</a>
+                <a href="#pricing">Pricing</a>
             </div>
         </div>
     </nav>
 
     <!-- Hero -->
-    <main class="flex-grow pt-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
-        <section class="py-20 flex flex-col items-center text-center">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-primary/30 bg-primary/10 text-primary text-xs font-mono mb-6">
-                <span class="w-2 h-2 rounded-full bg-primary animate-ping"></span>
-                v1.0.0 is live
-            </div>
-            <h1 class="text-5xl md:text-7xl font-black tracking-tight mb-6 leading-tight">
-                Stop paying for <span class="text-transparent bg-clip-text bg-gradient-to-r from-secondary to-accent">network latency.</span>
-            </h1>
-            <p class="text-lg md:text-xl text-gray-400 max-w-2xl mb-10 font-light">
-                Run search entirely in the browser. GhostSearch indexes 10,000+ records client-side for sub-millisecond query performance. Zero cookies, zero servers, zero SaaS bills.
-            </p>
-            <div class="flex flex-col sm:flex-row gap-4 font-mono">
-                <a href="#demo" class="px-8 py-3 bg-primary text-background font-bold hover:shadow-glow-primary transition-all">Launch Demo</a>
-                <a href="#docs" class="px-8 py-3 border border-white/20 hover:bg-white/5 transition-all">npm install ghostsearch</a>
-            </div>
-        </section>
-
-        <!-- Live Demo Section -->
-        <section id="demo" class="py-16">
-            <div class="glass-panel rounded-2xl p-6 md:p-10 border border-secondary/20">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-                    <div>
-                        <h2 class="text-2xl font-bold font-mono text-accent">Terminal Demo <span class="text-xs text-gray-500">~ 10,000 synthetic records</span></h2>
-                        <p class="text-sm text-gray-400 mt-1">Typing triggers an instant client-side query across a massive dataset.</p>
-                    </div>
-                    <div class="flex items-center gap-4 text-xs font-mono bg-black/50 px-4 py-2 rounded border border-white/10">
-                        <div class="flex flex-col">
-                            <span class="text-gray-500">Latency</span>
-                            <span id="latency-metric" class="text-primary font-bold text-lg">0.00ms</span>
-                        </div>
-                        <div class="w-px h-8 bg-white/10"></div>
-                        <div class="flex flex-col">
-                            <span class="text-gray-500">Results</span>
-                            <span id="results-count" class="text-secondary font-bold text-lg">0</span>
-                        </div>
-                    </div>
+    <section class="hero" id="home">
+        <div class="container">
+            <h1 class="hero-title">Search 100K docs in <1ms. <br>Zero servers.<span class="cursor-blink">_</span></h1>
+            <p class="hero-subtitle">Client-side full-text search engine optimized for static sites and serverless architectures. Fast, lightweight, and completely free.</p>
+            
+            <div class="search-demo">
+                <div class="search-input-wrapper">
+                    <input type="text" class="search-input" id="demo-search" placeholder="$ search frameworks, languages, tools..." autocomplete="off">
                 </div>
-
-                <div class="relative w-full mb-6">
-                    <input type="text" id="demo-search" placeholder="> Search 10k items (e.g., 'user', 'dashboard', 'settings')..." class="w-full bg-black/80 border border-primary/50 text-white font-mono p-4 rounded focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary placeholder-gray-600 transition-all">
-                    <div class="absolute right-4 top-4 text-gray-600 font-mono text-sm animate-pulse">_</div>
-                </div>
-
-                <div class="bg-black/80 border border-white/10 rounded h-96 overflow-y-auto demo-scroll p-4" id="results-container">
-                    <div class="text-center text-gray-600 font-mono py-20">
-                        Loading 10,000 synthetic records into client memory...
-                    </div>
+                <div class="search-results" id="demo-results" style="display: none;">
+                    <!-- Results injected here -->
                 </div>
             </div>
-        </section>
+            
+            <div style="margin-top: 48px; display: flex; gap: 16px; justify-content: center;">
+                <a href="#docs" class="btn btn-primary">Quick Start</a>
+                <a href="https://github.com/soumyadebnath/ghostsearch" class="btn btn-secondary">View on GitHub</a>
+            </div>
+        </div>
+    </section>
 
-        <!-- Benchmarks & ROI -->
-        <section id="roi" class="py-16 grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div class="glass-panel p-8 rounded-2xl">
-                <h3 class="text-xl font-bold font-mono text-secondary mb-4">Performance Benchmark</h3>
-                <div class="space-y-6">
-                    <div>
-                        <div class="flex justify-between text-sm font-mono mb-1">
-                            <span>GhostSearch (Client-side)</span>
-                            <span class="text-primary">&lt;1ms</span>
-                        </div>
-                        <div class="w-full bg-black/50 rounded h-2"><div class="bg-primary h-2 rounded w-[5%]"></div></div>
-                    </div>
-                    <div>
-                        <div class="flex justify-between text-sm font-mono mb-1">
-                            <span>Algolia (Network bound)</span>
-                            <span class="text-orange-400">~50ms</span>
-                        </div>
-                        <div class="w-full bg-black/50 rounded h-2"><div class="bg-orange-400 h-2 rounded w-[50%]"></div></div>
-                    </div>
-                    <div>
-                        <div class="flex justify-between text-sm font-mono mb-1">
-                            <span>Elasticsearch (Network + Parse)</span>
-                            <span class="text-red-400">~120ms</span>
-                        </div>
-                        <div class="w-full bg-black/50 rounded h-2"><div class="bg-red-400 h-2 rounded w-full"></div></div>
-                    </div>
+    <!-- Benchmark Bar -->
+    <div class="benchmarks gs-reveal">
+        <div class="container">
+            <div class="benchmarks-grid">
+                <div>
+                    <div class="stat-value"><span class="counter" data-target="0.3">0</span>ms</div>
+                    <div class="stat-label">Average Query Time</div>
+                </div>
+                <div>
+                    <div class="stat-value"><span class="counter" data-target="100">0</span>K+</div>
+                    <div class="stat-label">Docs Supported</div>
+                </div>
+                <div>
+                    <div class="stat-value"><span class="counter" data-target="0">0</span></div>
+                    <div class="stat-label">API Calls</div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <div class="glass-panel p-8 rounded-2xl border border-primary/20">
-                <h3 class="text-xl font-bold font-mono text-primary mb-2">Cost Savings Calculator</h3>
-                <p class="text-sm text-gray-400 mb-6">Compare GhostSearch against typical Algolia pricing ($1.00 / 1k requests).</p>
+    <!-- Cost Matrix -->
+    <section id="pricing" class="gs-reveal">
+        <div class="container">
+            <div class="section-header">
+                <span class="badge">Cost Analysis</span>
+                <h2>Why pay for search?</h2>
+                <p>Stop paying thousands of dollars for managed search infrastructure.</p>
+            </div>
+            
+            <div class="cost-matrix">
+                <div class="card gs-card">
+                    <h3>Elasticsearch</h3>
+                    <div class="price-tag">$2K+/mo</div>
+                    <ul class="feature-list">
+                        <li>Complex infrastructure to manage</li>
+                        <li>High compute and memory costs</li>
+                        <li>Overkill for most websites</li>
+                        <li>Requires DevOps expertise</li>
+                    </ul>
+                </div>
+                <div class="card highlight gs-card">
+                    <h3>GhostSearch</h3>
+                    <div class="price-tag">$0/mo</div>
+                    <ul class="feature-list">
+                        <li>Zero servers to manage</li>
+                        <li>Runs entirely in browser</li>
+                        <li>Sub-millisecond latency</li>
+                        <li>BSL 1.1 License</li>
+                    </ul>
+                    <a href="#docs" class="btn btn-primary" style="width: 100%;">Get Started</a>
+                </div>
+                <div class="card gs-card">
+                    <h3>Algolia</h3>
+                    <div class="price-tag">$50K/yr</div>
+                    <ul class="feature-list">
+                        <li>Expensive usage-based pricing</li>
+                        <li>Vendor lock-in</li>
+                        <li>Network latency overhead</li>
+                        <li>Privacy concerns with data sharing</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture Flow -->
+    <section class="gs-reveal">
+        <div class="container">
+            <div class="section-header">
+                <span class="badge">Architecture</span>
+                <h2>How it works</h2>
+            </div>
+            
+            <div class="arch-flow">
+                <div class="arch-step gs-step">
+                    <div class="arch-icon">01</div>
+                    <h3>Index</h3>
+                    <p>GhostSearch creates a highly compressed inverted index of your documents at build time.</p>
+                </div>
+                <div class="arch-step gs-step">
+                    <div class="arch-icon">02</div>
+                    <h3>Store</h3>
+                    <p>The compact index is shipped to the client as a static JSON or binary asset.</p>
+                </div>
+                <div class="arch-step gs-step">
+                    <div class="arch-icon">03</div>
+                    <h3>Query</h3>
+                    <p>Searches execute instantly in memory using Web Workers, blocking no UI thread.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Code Playground -->
+    <section id="docs" class="gs-reveal">
+        <div class="container">
+            <div class="section-header">
+                <span class="badge">Developer First</span>
+                <h2>Integrates in minutes</h2>
+            </div>
+            
+            <div class="code-window">
+                <div class="code-header">
+                    <div class="mac-btn mac-close"></div>
+                    <div class="mac-btn mac-min"></div>
+                    <div class="mac-btn mac-max"></div>
+                    <div class="tabs">
+                        <div class="tab active" data-tab="tab-install">npm install</div>
+                        <div class="tab" data-tab="tab-init">initialize.js</div>
+                        <div class="tab" data-tab="tab-search">search.js</div>
+                    </div>
+                </div>
                 
-                <div class="mb-6">
-                    <div class="flex justify-between text-sm font-mono mb-2">
-                        <span>Monthly Search Requests</span>
-                        <span id="req-val" class="text-white">500,000</span>
+                <div class="code-content">
+                    <div id="tab-install" class="code-pane active">
+<span class="code-keyword">npm</span> install ghostsearch
+<span class="code-comment"># Or use CDN</span>
+<span class="code-keyword">&lt;script</span> src="https://cdn.jsdelivr.net/npm/ghostsearch"&gt;<span class="code-keyword">&lt;/script&gt;</span>
                     </div>
-                    <input type="range" id="req-slider" min="10000" max="10000000" step="10000" value="500000">
-                </div>
+                    
+                    <div id="tab-init" class="code-pane">
+<span class="code-keyword">import</span> { GhostSearch } <span class="code-keyword">from</span> <span class="code-string">'ghostsearch'</span>;
 
-                <div class="grid grid-cols-2 gap-4 font-mono text-sm">
-                    <div class="bg-black/50 p-4 rounded border border-white/10">
-                        <div class="text-gray-500 mb-1">SaaS Cost / mo</div>
-                        <div id="saas-cost" class="text-2xl text-red-400">$500</div>
+<span class="code-keyword">const</span> data = [
+  { id: <span class="code-string">'1'</span>, title: <span class="code-string">'React'</span>, category: <span class="code-string">'UI Library'</span> },
+  { id: <span class="code-string">'2'</span>, title: <span class="code-string">'Vue'</span>, category: <span class="code-string">'Framework'</span> }
+];
+
+<span class="code-keyword">const</span> search = <span class="code-keyword">new</span> <span class="code-func">GhostSearch</span>({
+  documents: data,
+  searchFields: [<span class="code-string">'title'</span>, <span class="code-string">'category'</span>],
+  idField: <span class="code-string">'id'</span>
+});
+
+<span class="code-func">search.buildIndex</span>();
                     </div>
-                    <div class="bg-primary/10 p-4 rounded border border-primary/30">
-                        <div class="text-primary mb-1">GhostSearch Cost</div>
-                        <div class="text-2xl text-primary font-bold">$0</div>
+                    
+                    <div id="tab-search" class="code-pane">
+<span class="code-comment">// Execute search instantly in browser memory</span>
+<span class="code-keyword">const</span> results = <span class="code-func">search.query</span>(<span class="code-string">'React'</span>, {
+  fuzzy: <span class="code-keyword">true</span>,
+  limit: 10
+});
+
+console.<span class="code-func">log</span>(results);
+<span class="code-comment">/* Output:
+[
+  { 
+    item: { id: '1', title: 'React', category: 'UI Library' },
+    score: 1.0,
+    matches: { title: ['React'] }
+  }
+]
+*/</span>
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
+    </section>
 
-        <!-- Code integration -->
-        <section id="docs" class="py-16">
-            <h2 class="text-3xl font-bold mb-8 text-center">Seamless Integration</h2>
-            <div class="glass-panel max-w-4xl mx-auto rounded-2xl overflow-hidden border border-white/10">
-                <div class="flex bg-black/80 border-b border-white/10 text-sm font-mono">
-                    <button class="px-6 py-3 text-primary border-b-2 border-primary tab-btn" data-target="tab-install">Install</button>
-                    <button class="px-6 py-3 text-gray-500 hover:text-white tab-btn" data-target="tab-init">Initialize</button>
-                    <button class="px-6 py-3 text-gray-500 hover:text-white tab-btn" data-target="tab-search">Search</button>
+    <!-- Features Grid -->
+    <section id="features" class="gs-reveal">
+        <div class="container">
+            <div class="section-header">
+                <span class="badge">Features</span>
+                <h2>Everything you need</h2>
+            </div>
+            
+            <div class="features-grid">
+                <div class="card gs-feature">
+                    <h3 style="font-size: 18px; color: var(--primary);">Fuzzy Matching</h3>
+                    <p style="font-size: 14px; color: var(--text-body);">Handles typos and misspellings gracefully using optimized Levenshtein distance algorithms.</p>
                 </div>
-                <div class="p-6 bg-[#0d1117] font-mono text-sm overflow-x-auto">
-                    <pre id="tab-install" class="tab-content text-green-400">
-npm install ghostsearch flexsearch
-# or using yarn
-yarn add ghostsearch flexsearch
-                    </pre>
-                    <pre id="tab-init" class="tab-content hidden text-blue-300">
-import { GhostSearch } from 'ghostsearch';
-
-const db = new GhostSearch({
-  index: ['title', 'content', 'path'],
-  tokenize: 'forward',
-  cache: true
-});
-
-// Load records
-await db.add(myHugeDataset);
-                    </pre>
-                    <pre id="tab-search" class="tab-content hidden text-secondary">
-// Fires on keyup, returns in <1ms
-const results = db.search("dashboard settings", {
-  limit: 50,
-  suggest: true 
-});
-
-console.log(results);
-// [{ id: 1, title: 'Dashboard Settings', ... }, ...]
-                    </pre>
+                <div class="card gs-feature">
+                    <h3 style="font-size: 18px; color: var(--primary);">Faceted Search</h3>
+                    <p style="font-size: 14px; color: var(--text-body);">Filter results by categories, tags, or custom attributes instantly.</p>
+                </div>
+                <div class="card gs-feature">
+                    <h3 style="font-size: 18px; color: var(--primary);">Text Highlighting</h3>
+                    <p style="font-size: 14px; color: var(--text-body);">Returns precise character offsets for matching terms to build beautiful UI highlights.</p>
+                </div>
+                <div class="card gs-feature">
+                    <h3 style="font-size: 18px; color: var(--primary);">Web Workers</h3>
+                    <p style="font-size: 14px; color: var(--text-body);">Offloads heavy indexing and searching to background threads to keep UI snappy.</p>
+                </div>
+                <div class="card gs-feature">
+                    <h3 style="font-size: 18px; color: var(--primary);">Pre-computed Export</h3>
+                    <p style="font-size: 14px; color: var(--text-body);">Generate indexes at build time and serve them as static JSON payloads for zero client-side indexing.</p>
+                </div>
+                <div class="card gs-feature">
+                    <h3 style="font-size: 18px; color: var(--primary);">Pagination</h3>
+                    <p style="font-size: 14px; color: var(--text-body);">Built-in cursor-based and offset pagination for handling large result sets efficiently.</p>
                 </div>
             </div>
-        </section>
+        </div>
+    </section>
 
-    </main>
+    <!-- FAQ Accordion -->
+    <section class="gs-reveal">
+        <div class="container">
+            <div class="section-header">
+                <span class="badge">FAQ</span>
+                <h2>Common Questions</h2>
+            </div>
+            
+            <div style="max-width: 800px; margin: 0 auto;">
+                <div class="faq-item">
+                    <div class="faq-question">What is the best free alternative to Algolia? <span class="faq-icon">+</span></div>
+                    <div class="faq-answer">
+                        <p>GhostSearch is the best free Algolia alternative for static sites and client-side applications. It runs entirely in the browser, meaning zero server costs, while still delivering sub-millisecond search performance on datasets up to 100K documents.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">How does GhostSearch compare to Elasticsearch? <span class="faq-icon">+</span></div>
+                    <div class="faq-answer">
+                        <p>Elasticsearch is a complex server-side distributed search engine designed for massive, dynamic datasets (billions of records). GhostSearch is a lightweight, client-side library meant for small to medium, relatively static datasets. If you're building a documentation site, a blog, or a catalog with under 100K items, GhostSearch is infinitely cheaper and easier to setup.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">Won't downloading the index slow down my site? <span class="faq-icon">+</span></div>
+                    <div class="faq-answer">
+                        <p>Not if configured correctly. GhostSearch indexes are heavily compressed. A 10K document dataset typically compresses to ~200KB. This payload can be fetched asynchronously or lazily loaded only when the user clicks the search bar.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- Footer -->
-    <footer class="mt-20 border-t border-white/10 bg-black/50 py-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-8 font-mono text-sm text-gray-500">
-            <div>
-                <div class="text-white font-bold text-lg mb-4">GhostSearch</div>
-                <p class="mb-2">Created by Soumya Debnath</p>
-                <p>Email: <a href="mailto:soumyadebnath1661@gmail.com" class="text-accent hover:underline">soumyadebnath1661@gmail.com</a></p>
-                <p>Phone: +91 7031648617</p>
-            </div>
-            <div class="md:text-right">
-                <p class="mb-2">Licensed under <span class="text-white">BSL 1.1</span></p>
-                <p class="mb-4">Free for non-commercial and commercial use with zero backend costs.</p>
-                <div class="flex md:justify-end gap-4">
-                    <a href="#" class="hover:text-white">GitHub</a>
-                    <a href="#" class="hover:text-white">Documentation</a>
-                    <a href="#" class="hover:text-white">NPM</a>
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <div class="footer-logo">Ghost<span>Search</span></div>
+                    <p style="color: rgba(201, 209, 217, 0.7); font-size: 14px; max-width: 300px;">The fastest client-side full-text search engine for modern web applications.</p>
                 </div>
+                <div class="footer-links">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="#">Documentation</a></li>
+                        <li><a href="#">GitHub Repository</a></li>
+                        <li><a href="#">NPM Package</a></li>
+                        <li><a href="#">Benchmarks</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="#">BSL 1.1 License</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <div>© 2026 GhostSearch. All rights reserved.</div>
+                <div>Author: Soumya Debnath | soumyadebnath1661@gmail.com | +91 7031648617</div>
             </div>
         </div>
     </footer>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/gh/nextapps-de/flexsearch@0.7.31/dist/flexsearch.bundle.js"></script>
     <script>
-        // Cost Calculator
-        const slider = document.getElementById('req-slider');
-        const reqVal = document.getElementById('req-val');
-        const saasCost = document.getElementById('saas-cost');
-        
-        slider.addEventListener('input', (e) => {
-            const val = parseInt(e.target.value);
-            reqVal.innerText = val.toLocaleString();
-            const cost = (val / 1000) * 1; // $1 per 1000 reqs
-            saasCost.innerText = `$${cost.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 2})}`;
-        });
-
-        // Tabs
-        const tabBtns = document.querySelectorAll('.tab-btn');
-        const tabContents = document.querySelectorAll('.tab-content');
-        
-        tabBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                tabBtns.forEach(b => {
-                    b.classList.remove('text-primary', 'border-b-2', 'border-primary');
-                    b.classList.add('text-gray-500');
-                });
-                btn.classList.add('text-primary', 'border-b-2', 'border-primary');
-                btn.classList.remove('text-gray-500');
+        // Tab switching logic
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.code-pane').forEach(p => p.classList.remove('active'));
                 
-                tabContents.forEach(c => c.classList.add('hidden'));
-                document.getElementById(btn.dataset.target).classList.remove('hidden');
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).classList.add('active');
             });
         });
 
-        // FlexSearch Demo Initialization
-        let index;
-        let documents = [];
-        
-        // Generate synthetic data
-        function generateData() {
-            const domains = ['marketing', 'engineering', 'sales', 'hr', 'product'];
-            const types = ['document', 'spreadsheet', 'presentation', 'code', 'image'];
-            const actions = ['Q1', 'Q2', 'Q3', 'Q4', '2023', '2024', 'draft', 'final', 'review'];
-            
-            for(let i=0; i<10000; i++) {
-                const domain = domains[Math.floor(Math.random() * domains.length)];
-                const type = types[Math.floor(Math.random() * types.length)];
-                const action = actions[Math.floor(Math.random() * actions.length)];
-                const id = i;
-                
-                documents.push({
-                    id: id,
-                    title: `${domain.charAt(0).toUpperCase() + domain.slice(1)} ${type} - ${action}`,
-                    content: `This is a synthetic record for the ${domain} team regarding ${type} items in ${action}. ID: ${id}`,
-                    path: `/${domain}/${action}/${type}_${id}.xyz`
-                });
-            }
-        }
-
-        async function initSearch() {
-            generateData();
-            
-            // Initialize FlexSearch Document Index
-            index = new FlexSearch.Document({
-                document: {
-                    id: "id",
-                    index: ["title", "content", "path"],
-                    store: true
-                },
-                tokenize: "forward",
-                resolution: 9
+        // FAQ logic
+        document.querySelectorAll('.faq-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const isActive = item.classList.contains('active');
+                document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('active'));
+                if (!isActive) {
+                    item.classList.add('active');
+                }
             });
-            
-            // Index all docs
-            for(let i = 0; i < documents.length; i++) {
-                index.add(documents[i]);
-            }
-            
-            document.getElementById('results-container').innerHTML = `
-                <div class="text-center text-gray-500 font-mono py-10">
-                    <div class="text-primary mb-2 text-2xl font-bold">10,000</div>
-                    Records loaded into client memory.<br>Start typing to search.
-                </div>
-            `;
-        }
+        });
 
-        // Run init
-        setTimeout(initSearch, 100);
+        // Live Search Demo Logic
+        const techData = [
+            "React.js - UI Library",
+            "Vue.js - Progressive Framework",
+            "Angular - Platform & Framework",
+            "Svelte - Cybernetically enhanced web apps",
+            "Next.js - The React Framework",
+            "Nuxt.js - The Intuitive Vue Framework",
+            "Gatsby - Fast Static Site Generator",
+            "Tailwind CSS - Utility-first CSS",
+            "Bootstrap - CSS Framework",
+            "Node.js - JavaScript Runtime",
+            "Deno - Secure Runtime for JS/TS",
+            "Bun - Fast all-in-one JavaScript runtime",
+            "TypeScript - Typed superset of JS",
+            "Vite - Next Generation Frontend Tooling",
+            "Webpack - Module Bundler",
+            "GhostSearch - Client-side Search",
+            "Algolia - Hosted Search API",
+            "Elasticsearch - Distributed Search Engine",
+            "PostgreSQL - Relational Database",
+            "MongoDB - NoSQL Database"
+        ];
 
-        // Highlight helper
-        function highlight(text, query) {
-            if(!query) return text;
-            const regex = new RegExp(`(${query})`, 'gi');
-            return text.replace(regex, '<span class="highlight-term">$1</span>');
-        }
-
-        // Search execution
         const searchInput = document.getElementById('demo-search');
+        const resultsContainer = document.getElementById('demo-results');
+
         searchInput.addEventListener('input', (e) => {
-            const q = e.target.value;
-            if(!q || q.length < 2) {
-                document.getElementById('results-container').innerHTML = '';
-                document.getElementById('latency-metric').innerText = '0.00ms';
-                document.getElementById('results-count').innerText = '0';
+            const query = e.target.value.toLowerCase();
+            if (query.length === 0) {
+                resultsContainer.style.display = 'none';
                 return;
             }
 
-            const t0 = performance.now();
+            const matches = techData.filter(item => item.toLowerCase().includes(query));
             
-            // Search across title, content, path
-            const resultsRaw = index.search(q, 50, { enrich: true });
-            
-            const t1 = performance.now();
-            
-            // Calculate latency
-            document.getElementById('latency-metric').innerText = (t1 - t0).toFixed(2) + 'ms';
-            
-            // Deduplicate results since they might match multiple fields
-            let matchedDocs = new Map();
-            resultsRaw.forEach(fieldResult => {
-                fieldResult.result.forEach(doc => {
-                    if(!matchedDocs.has(doc.id)) {
-                        matchedDocs.set(doc.id, doc.doc);
-                    }
-                });
-            });
-            
-            const finalResults = Array.from(matchedDocs.values());
-            document.getElementById('results-count').innerText = finalResults.length;
-            
-            const container = document.getElementById('results-container');
-            if(finalResults.length === 0) {
-                container.innerHTML = `<div class="p-4 text-gray-500 font-mono text-center">No matches found for "${q}"</div>`;
-                return;
+            if (matches.length > 0) {
+                resultsContainer.innerHTML = matches.map(match => {
+                    const regex = new RegExp(`(${query})`, 'gi');
+                    const highlighted = match.replace(regex, '<span class="match-highlight">$1</span>');
+                    return `<div class="search-result-item">${highlighted}</div>`;
+                }).join('');
+                resultsContainer.style.display = 'block';
+            } else {
+                resultsContainer.innerHTML = `<div class="search-result-item" style="color: rgba(201, 209, 217, 0.5);">No results found for "${query}"</div>`;
+                resultsContainer.style.display = 'block';
             }
-
-            let html = '<div class="space-y-2">';
-            finalResults.forEach(doc => {
-                html += `
-                    <div class="bg-black/50 border border-white/5 p-3 rounded hover:border-primary/30 transition-colors cursor-pointer group">
-                        <div class="text-accent font-bold mb-1">${highlight(doc.title, q)}</div>
-                        <div class="text-xs text-gray-400 mb-1">${highlight(doc.path, q)}</div>
-                        <div class="text-sm text-gray-500 group-hover:text-gray-300 transition-colors">${highlight(doc.content, q)}</div>
-                    </div>
-                `;
-            });
-            html += '</div>';
-            container.innerHTML = html;
         });
+
+        // Close search results on outside click
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.search-demo')) {
+                resultsContainer.style.display = 'none';
+            }
+        });
+
+        // GSAP Animations
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Hero Animation
+        const heroTimeline = gsap.timeline();
+        
+        // Split text effect approximation (words)
+        const heroTitle = document.querySelector('.hero-title');
+        const titleHTML = heroTitle.innerHTML;
+        // Basic fade up for hero elements
+        heroTimeline.fromTo('.hero-title', 
+            { y: 50, opacity: 0 }, 
+            { y: 0, opacity: 1, duration: 1, ease: 'power3.out' }
+        )
+        .fromTo('.hero-subtitle', 
+            { y: 30, opacity: 0 }, 
+            { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out' },
+            "-=0.5"
+        )
+        .fromTo('.search-demo', 
+            { y: 30, opacity: 0 }, 
+            { y: 0, opacity: 1, duration: 0.8, ease: 'power3.out' },
+            "-=0.5"
+        )
+        .fromTo('.btn', 
+            { y: 20, opacity: 0 }, 
+            { y: 0, opacity: 1, duration: 0.5, stagger: 0.1, ease: 'power3.out' },
+            "-=0.4"
+        );
+
+        // Generic Section Reveals
+        gsap.utils.toArray('.gs-reveal').forEach(section => {
+            gsap.fromTo(section,
+                { y: 60, opacity: 0 },
+                {
+                    y: 0,
+                    opacity: 1,
+                    duration: 1,
+                    ease: "power3.out",
+                    scrollTrigger: {
+                        trigger: section,
+                        start: "top 80%",
+                    }
+                }
+            );
+        });
+
+        // Staggered Cards (Cost Matrix)
+        gsap.fromTo('.gs-card',
+            { y: 50, opacity: 0 },
+            {
+                y: 0,
+                opacity: 1,
+                duration: 0.8,
+                stagger: 0.15,
+                ease: "power3.out",
+                scrollTrigger: {
+                    trigger: '.cost-matrix',
+                    start: "top 80%",
+                }
+            }
+        );
+
+        // Staggered Steps (Architecture)
+        gsap.fromTo('.gs-step',
+            { y: 50, opacity: 0 },
+            {
+                y: 0,
+                opacity: 1,
+                duration: 0.8,
+                stagger: 0.15,
+                ease: "power3.out",
+                scrollTrigger: {
+                    trigger: '.arch-flow',
+                    start: "top 80%",
+                }
+            }
+        );
+
+        // Staggered Features
+        gsap.fromTo('.gs-feature',
+            { y: 40, opacity: 0 },
+            {
+                y: 0,
+                opacity: 1,
+                duration: 0.6,
+                stagger: 0.1,
+                ease: "power3.out",
+                scrollTrigger: {
+                    trigger: '.features-grid',
+                    start: "top 85%",
+                }
+            }
+        );
+
+        // Simple counter animation logic since countUp.umd.js might not be properly loaded without modules
+        const animateCounters = () => {
+            const counters = document.querySelectorAll('.counter');
+            counters.forEach(counter => {
+                const target = parseFloat(counter.getAttribute('data-target'));
+                const duration = 2000; // 2 seconds
+                const steps = 60;
+                const stepTime = duration / steps;
+                let current = 0;
+                const increment = target / steps;
+                
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        counter.innerText = target;
+                        clearInterval(timer);
+                    } else {
+                        // format to 1 decimal if target has decimal
+                        counter.innerText = target % 1 !== 0 ? current.toFixed(1) : Math.floor(current);
+                    }
+                }, stepTime);
+            });
+        };
+
+        ScrollTrigger.create({
+            trigger: '.benchmarks',
+            start: "top 80%",
+            onEnter: () => animateCounters(),
+            once: true
+        });
+
     </script>
 </body>
 </html>
