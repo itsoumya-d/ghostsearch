@@ -1,0 +1,38 @@
+{
+  "name": "ghostsearch",
+  "version": "1.0.0",
+  "description": "Sub-millisecond client-side full-text search engine. Zero server. Replaces Algolia.",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "search",
+    "full-text",
+    "client-side",
+    "browser",
+    "offline",
+    "algolia-alternative",
+    "ghostsearch"
+  ],
+  "license": "AGPL-3.0",
+  "author": "Soumya Debnath <soumyadebnath1661@gmail.com>",
+  "dependencies": {
+    "flexsearch": "^0.7.31"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  }
+}
