@@ -1,3 +1,4 @@
+import { LicenseValidator } from "./license-validator";
 // Copyright (c) 2024-2026 Soumya Debnath. All Rights Reserved.
 // Licensed under the Business Source License 1.1 (BSL 1.1).
 // See LICENSE file for details. Production use requires a paid license.
@@ -9,7 +10,9 @@ import { SearchEngine } from './search-engine';
 export class GhostSearch<T extends GhostDocument> {
   private engine: SearchEngine<T>;
 
-  constructor(options: GhostSearchOptions) {
+  constructor(options?: any) {
+    LicenseValidator.validate(options);
+    // constructor(options: GhostSearchOptions) {
     this.engine = new SearchEngine<T>(options);
   }
 
