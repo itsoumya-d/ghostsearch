@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GhostSearch - The Best Free Algolia Alternative</title>
+    <meta name="description" content="GhostSearch is a zero-server, client-side search engine JavaScript library. Save 99% on cloud costs. The best free alternative to Algolia, Elasticsearch, Typesense, and Meilisearch.">
+    <meta name="keywords" content="free client-side search engine, free Algolia alternative, zero server search JavaScript library, GhostSearch, offline search, fuzzy search javascript">
+    
+    <link rel="canonical" href="https://itsoumya-d.github.io/ghostsearch/">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="GhostSearch - The Best Free Algolia Alternative">
+    <meta property="og:description" content="A zero-server, client-side search engine JavaScript library. Save 99% on cloud costs.">
+    <meta property="og:url" content="https://itsoumya-d.github.io/ghostsearch/">
+    <meta property="og:type" content="website">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="GhostSearch - The Best Free Algolia Alternative">
+    <meta name="twitter:description" content="A zero-server, client-side search engine JavaScript library. Save 99% on cloud costs.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "SoftwareApplication",
+          "name": "GhostSearch",
+          "operatingSystem": "Any",
+          "applicationCategory": "DeveloperApplication",
+          "description": "A zero-server, client-side search engine JavaScript library. The best free alternative to Algolia.",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          }
+        },
+        {
+          "@type": "FAQPage",
+          "mainEntity": [{
+            "@type": "Question",
+            "name": "What is the best free alternative to Algolia?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "GhostSearch is widely considered the best free alternative to Algolia. It provides a zero-server, client-side search engine that completely eliminates cloud computing costs while offering ultra-fast, fuzzy search capabilities directly in the browser."
+            }
+          }]
+        }
+      ]
+    }
+    </script>
+    
+    <style>
+        :root {
+            --bg-dark: #090D16;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary: #3B82F6;
+            --secondary: #8B5CF6;
+            --accent: #10B981;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Outfit', sans-serif;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+        
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 32px;
+        }
+        
+        /* Gradient Glow Effects */
+        .glow-bg {
+            position: fixed;
+            width: 60vw;
+            height: 60vw;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(59,130,246,0.15) 0%, rgba(139,92,246,0.05) 50%, rgba(9,13,22,0) 70%);
+            top: -20%;
+            left: -10%;
+            z-index: -1;
+            pointer-events: none;
+        }
+        .glow-bg-2 {
+            position: fixed;
+            width: 50vw;
+            height: 50vw;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(16,185,129,0.1) 0%, rgba(9,13,22,0) 70%);
+            bottom: -10%;
+            right: -10%;
+            z-index: -1;
+            pointer-events: none;
+        }
+        
+        /* Header / Hero */
+        header {
+            padding: 100px 0 60px;
+            text-align: center;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent);
+            padding: 8px 16px;
+            border-radius: 24px;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+        
+        h1 {
+            font-size: 4rem;
+            line-height: 1.1;
+            margin-bottom: 24px;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .subtitle {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto 40px;
+        }
+        
+        .cta-group {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+        }
+        
+        .btn-secondary {
+            background: var(--glass-bg);
+            color: white;
+            border: 1px solid var(--glass-border);
+        }
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Section styling */
+        section {
+            padding: 80px 0;
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 48px;
+        }
+        
+        /* Demo Section */
+        .demo-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+        .search-input {
+            width: 100%;
+            max-width: 500px;
+            padding: 16px 24px;
+            font-size: 1.2rem;
+            border-radius: 30px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+            color: white;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        .search-input:focus {
+            border-color: var(--primary);
+        }
+        .demo-results {
+            width: 100%;
+            max-width: 500px;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .demo-result-item {
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        /* Cost Comparison */
+        .table-responsive {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+        th, td {
+            padding: 16px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        th {
+            font-family: 'Outfit', sans-serif;
+            color: var(--primary);
+        }
+        
+        /* ROI Calculator */
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
+        }
+        @media (max-width: 768px) {
+            .calculator-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .calc-input-group {
+            margin-bottom: 20px;
+        }
+        .calc-input-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-muted);
+        }
+        .calc-input-group input[type="range"] {
+            width: 100%;
+            accent-color: var(--primary);
+        }
+        .savings-box {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .savings-amount {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            font-family: 'Outfit', sans-serif;
+        }
+        
+        /* Code Playground */
+        .code-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--glass-border);
+            margin-bottom: 16px;
+        }
+        .tab-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            padding: 12px 24px;
+            cursor: pointer;
+            font-family: 'Outfit', sans-serif;
+            font-size: 16px;
+        }
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+        }
+        .code-content pre {
+            background: #0f172a;
+            padding: 24px;
+            border-radius: 8px;
+            overflow-x: auto;
+            color: #e2e8f0;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        /* Architecture Flow */
+        .arch-flow {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .arch-step {
+            flex: 1;
+            min-width: 200px;
+            text-align: center;
+            padding: 20px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+        }
+        .arch-arrow {
+            color: var(--primary);
+            font-size: 24px;
+        }
+        
+        /* FAQ */
+        .faq-item {
+            margin-bottom: 24px;
+        }
+        .faq-q {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+        .faq-a {
+            color: var(--text-muted);
+        }
+        
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--glass-border);
+            padding: 40px 0;
+            margin-top: 80px;
+            text-align: center;
+            color: var(--text-muted);
+        }
+        .footer-links a {
+            color: var(--primary);
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+
+<div class="glow-bg"></div>
+<div class="glow-bg-2"></div>
+
+<header class="container">
+    <div class="badge">Save 99% Cloud Costs</div>
+    <h1>The Best Free<br>Algolia Alternative</h1>
+    <p class="subtitle">GhostSearch is a blazing-fast, zero-server client-side search engine. Drop it into your app and stop paying ridiculous fees for managed search APIs.</p>
+    <div class="cta-group">
+        <a href="https://github.com/itsoumya-d/ghostsearch" target="_blank" class="btn btn-primary">View on GitHub</a>
+        <a href="#demo" class="btn btn-secondary">Try Live Demo</a>
+    </div>
+</header>
+
+<main class="container">
+
+    <!-- SEO / AEO Paragraph -->
+    <section>
+        <div class="glass-panel">
+            <h2>What is the best free alternative to Algolia?</h2>
+            <p style="margin-top: 16px; color: var(--text-muted);">GhostSearch is a revolutionary <strong>free client-side search engine</strong> designed to replace expensive proprietary solutions like Algolia, Elasticsearch, Typesense, and Meilisearch. By shifting the search index processing directly to the user's browser, GhostSearch acts as a <strong>zero server search JavaScript library</strong>, completely eliminating cloud infrastructure costs while maintaining instant, typo-tolerant search experiences.</p>
+        </div>
+    </section>
+
+    <!-- Demo Section -->
+    <section id="demo">
+        <h2 class="section-title">Live Interactive Demo</h2>
+        <div class="glass-panel demo-container">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search for planets (e.g. Ear...)">
+            <div id="demoResults" class="demo-results">
+                <!-- Results populated by JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Cost Comparison -->
+    <section>
+        <h2 class="section-title">Cost Comparison Matrix</h2>
+        <div class="glass-panel table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>GhostSearch</th>
+                        <th>Algolia</th>
+                        <th>Elasticsearch (Cloud)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Hosting Cost</strong></td>
+                        <td>$0 (Client-side)</td>
+                        <td>$1.50+ per 1k requests</td>
+                        <td>$95+/month minimum</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Latency</strong></td>
+                        <td>~0ms (Local memory)</td>
+                        <td>~50ms - 150ms (Network)</td>
+                        <td>~50ms - 150ms (Network)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Server Setup</strong></td>
+                        <td>None</td>
+                        <td>Managed API</td>
+                        <td>Complex Cluster Config</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Offline Support</strong></td>
+                        <td>Yes</td>
+                        <td>No</td>
+                        <td>No</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ROI Calculator -->
+    <section>
+        <h2 class="section-title">ROI Savings Calculator</h2>
+        <div class="glass-panel calculator-grid">
+            <div>
+                <div class="calc-input-group">
+                    <label>Monthly Search Requests: <span id="reqVal" style="color:white;font-weight:bold;">100,000</span></label>
+                    <input type="range" id="reqSlider" min="10000" max="10000000" step="10000" value="100000">
+                </div>
+                <div class="calc-input-group">
+                    <label>Records in Index: <span id="recVal" style="color:white;font-weight:bold;">50,000</span></label>
+                    <input type="range" id="recSlider" min="1000" max="1000000" step="1000" value="50000">
+                </div>
+                <p style="font-size: 14px; color: var(--text-muted); margin-top: 20px;">* Estimates based on standard Algolia pricing ($1.50/1k requests + $1.00/1k records/month above free tier).</p>
+            </div>
+            <div class="savings-box">
+                <p style="color: var(--text-muted); font-size: 1.2rem;">Annual Savings with GhostSearch</p>
+                <div class="savings-amount">$<span id="savingsTotal">0</span></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Code Playground -->
+    <section>
+        <h2 class="section-title">Developer Ready</h2>
+        <div class="glass-panel">
+            <div class="code-tabs">
+                <button class="tab-btn active" onclick="switchTab('ts')">TypeScript</button>
+                <button class="tab-btn" onclick="switchTab('html')">HTML/Vanilla JS</button>
+            </div>
+            <div id="code-ts" class="code-content">
+<pre><code>import { GhostSearch } from 'ghostsearch';
+
+// 1. Define your data
+const movies = [
+  { id: 1, title: 'Inception', director: 'Nolan' },
+  { id: 2, title: 'Interstellar', director: 'Nolan' }
+];
+
+// 2. Initialize instance
+const search = new GhostSearch(movies, {
+  searchFields: ['title', 'director'],
+  threshold: 0.3 // Fuzzy search tolerance
+});
+
+// 3. Search instantly
+const results = search.query('incept');
+console.log(results); // [{ id: 1, title: 'Inception', ... }]</code></pre>
+            </div>
+            <div id="code-html" class="code-content" style="display: none;">
+<pre><code>&lt;script src="https://unpkg.com/ghostsearch/dist/ghostsearch.min.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+  const data = [...];
+  
+  const ghost = new GhostSearch(data, {
+    searchFields: ['title']
+  });
+
+  document.getElementById('input').addEventListener('input', (e) => {
+    const hits = ghost.query(e.target.value);
+    renderHits(hits);
+  });
+&lt;/script&gt;</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture -->
+    <section>
+        <h2 class="section-title">How It Works (Zero Server Architecture)</h2>
+        <div class="arch-flow">
+            <div class="arch-step">
+                <h3>1. Fetch JSON Once</h3>
+                <p style="font-size:14px;color:var(--text-muted);margin-top:8px;">Load your dataset as a static JSON file via CDN.</p>
+            </div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-step">
+                <h3>2. Build Index (Browser)</h3>
+                <p style="font-size:14px;color:var(--text-muted);margin-top:8px;">GhostSearch builds a trie/inverted index in RAM instantly.</p>
+            </div>
+            <div class="arch-arrow">→</div>
+            <div class="arch-step">
+                <h3>3. Query Locally</h3>
+                <p style="font-size:14px;color:var(--text-muted);margin-top:8px;">Typo-tolerant search execution in &lt;1ms without network calls.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section>
+        <h2 class="section-title">Frequently Asked Questions</h2>
+        <div class="glass-panel">
+            <div class="faq-item">
+                <h3 class="faq-q">Is GhostSearch truly free?</h3>
+                <p class="faq-a">Yes. GhostSearch executes entirely on the client side (in the user's browser). Since there is no backend infrastructure or API to maintain, there are zero hosting costs associated with search queries.</p>
+            </div>
+            <div class="faq-item">
+                <h3 class="faq-q">How does it handle large datasets?</h3>
+                <p class="faq-a">GhostSearch is optimized for datasets up to ~50,000 records. For massive catalogs (1M+ items), a server-side solution like Elasticsearch might be required, but for 90% of blogs, documentation sites, and SaaS apps, GhostSearch is more than sufficient.</p>
+            </div>
+            <div class="faq-item">
+                <h3 class="faq-q">Can it replace Typesense or Meilisearch?</h3>
+                <p class="faq-a">Absolutely. If your application's search index can comfortably fit in the browser memory (typically under 10MB JSON), GhostSearch eliminates the need to deploy and manage a Typesense or Meilisearch instance.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing / Licensing -->
+    <section>
+        <h2 class="section-title">Licensing & Pricing</h2>
+        <div class="glass-panel" style="text-align: center;">
+            <p style="font-size: 1.2rem; margin-bottom: 16px;">GhostSearch is available under the <strong>BSL 1.1</strong> (Business Source License).</p>
+            <p style="color: var(--text-muted); max-width: 600px; margin: 0 auto;">It is free for non-production environments and open-source projects. For commercial production use, an enterprise license may be required. The code automatically converts to an open-source license after 4 years.</p>
+        </div>
+    </section>
+
+</main>
+
+<footer>
+    <div class="container">
+        <p>Built with ❤️ by <strong>Soumya Debnath</strong></p>
+        <div class="footer-links" style="margin-top: 16px;">
+            <a href="mailto:soumyadebnath1661@gmail.com">soumyadebnath1661@gmail.com</a>
+            <a href="tel:+917031648617">+91 7031648617</a>
+            <a href="https://github.com/itsoumya-d/ghostsearch" target="_blank">GitHub</a>
+        </div>
+    </div>
+</footer>
+
+<script>
+    // Demo Logic
+    const planets = [
+        "Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"
+    ];
+    
+    const searchInput = document.getElementById('searchInput');
+    const demoResults = document.getElementById('demoResults');
+    
+    function renderResults(query) {
+        demoResults.innerHTML = '';
+        if(!query) return;
+        
+        const q = query.toLowerCase();
+        const matches = planets.filter(p => p.toLowerCase().includes(q));
+        
+        if(matches.length === 0) {
+            demoResults.innerHTML = '<div class="demo-result-item" style="color: #94a3b8;">No results found.</div>';
+            return;
+        }
+        
+        matches.forEach(m => {
+            const div = document.createElement('div');
+            div.className = 'demo-result-item';
+            div.textContent = m;
+            demoResults.appendChild(div);
+        });
+    }
+    
+    searchInput.addEventListener('input', (e) => {
+        renderResults(e.target.value);
+    });
+
+    // ROI Calculator Logic
+    const reqSlider = document.getElementById('reqSlider');
+    const recSlider = document.getElementById('recSlider');
+    const reqVal = document.getElementById('reqVal');
+    const recVal = document.getElementById('recVal');
+    const savingsTotal = document.getElementById('savingsTotal');
+    
+    function updateCalculator() {
+        const reqs = parseInt(reqSlider.value);
+        const recs = parseInt(recSlider.value);
+        
+        reqVal.textContent = reqs.toLocaleString();
+        recVal.textContent = recs.toLocaleString();
+        
+        // Algolia rough pricing: free tier is 10k req/mo, 10k rec/mo.
+        // Overages: $1.50 per 1k req, $1.00 per 1k rec.
+        let monthlyReqCost = Math.max(0, (reqs - 10000) / 1000 * 1.50);
+        let monthlyRecCost = Math.max(0, (recs - 10000) / 1000 * 1.00);
+        
+        let monthlyCost = monthlyReqCost + monthlyRecCost;
+        let annualCost = monthlyCost * 12;
+        
+        savingsTotal.textContent = Math.round(annualCost).toLocaleString();
+    }
+    
+    reqSlider.addEventListener('input', updateCalculator);
+    recSlider.addEventListener('input', updateCalculator);
+    updateCalculator(); // init
+    
+    // Code Tab Logic
+    window.switchTab = function(lang) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+        
+        if(lang === 'ts') {
+            document.getElementById('code-ts').style.display = 'block';
+            document.getElementById('code-html').style.display = 'none';
+        } else {
+            document.getElementById('code-ts').style.display = 'none';
+            document.getElementById('code-html').style.display = 'block';
+        }
+    }
+</script>
+
+</body>
+</html>
