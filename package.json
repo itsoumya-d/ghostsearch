@@ -25,7 +25,7 @@
     "algolia-alternative",
     "ghostsearch"
   ],
-  "license": "AGPL-3.0",
+  "license": "BSL-1.1",
   "author": "Soumya Debnath <soumyadebnath1661@gmail.com>",
   "dependencies": {
     "flexsearch": "^0.7.31"
