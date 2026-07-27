@@ -1,3 +1,10 @@
+<!--
+// Copyright (c) 2024-2026 Soumya Debnath. All Rights Reserved.
+// Licensed under the Business Source License 1.1 (BSL 1.1).
+// See LICENSE file for details. Production use requires a paid license.
+// Contact: soumyadebnath1661@gmail.com | +91 7031648617
+-->
+
 # 👻 GhostSearch
 
 <p align="center">
@@ -29,6 +36,32 @@ It builds a highly compressed, inverted index of your documents and ships it dir
 - **0ms Network Latency:** Sub-millisecond response times. Faster than any API.
 - **Offline Capable:** Works flawlessly without an internet connection.
 - **Web Worker Powered:** Offloads heavy processing to a background thread, keeping your UI butter-smooth.
+
+---
+
+## 🧠 Semantic Vector Search & Hybrid Search (Research-Backed)
+
+GhostSearch features state-of-the-art client-side vector search and hybrid retrieval capabilities, bringing dense vector representations directly to the user's browser.
+
+### 📐 Semantic Vector Search (HNSW + Matryoshka MRL)
+- **Hierarchical Navigable Small World (HNSW) Index**: Fast approximate nearest neighbor (ANN) graph indexing executing client-side with logarithmic search complexity.
+- **Matryoshka Representation Learning (MRL) Funnel**: Multi-stage coarse-to-fine vector retrieval using nested embedding dimensions (`[64, 256, 384]`). Truncated low-dimensional embeddings (64d) filter candidate sets at lightning speed, while higher dimensions (384d) re-rank top hits for maximum recall.
+
+### 🔀 Hybrid Search (Keyword + Semantic Fusion)
+- **Reciprocal Rank Fusion (RRF)**: Merges exact BM25/TF-IDF keyword matching with vector cosine similarity scores into a unified ranking model.
+- **Zero-Latency In-Browser Inference**: Compatible with client-side embedding models (e.g., Transformers.js / ONNX runtime).
+
+### 🔬 Research Foundation
+> **Research Citation:**  
+> Kusupati, A., Singh, G., Bhat, W., et al. (2022). *Matryoshka Representation Learning*. Advances in Neural Information Processing Systems (NeurIPS 2022). [arXiv:2205.13147](https://arxiv.org/abs/2205.13147)
+
+### 💻 Hybrid Search Usage Example
+```typescript
+const search = new GhostSearch({ fields: ['title', 'content'] });
+await search.enableSemanticSearch({ dimensions: 384, matryoshkaDims: [64, 256, 384] });
+search.addDocuments(docs);
+const results = await search.hybridSearch('machine learning optimization');
+```
 
 ---
 
