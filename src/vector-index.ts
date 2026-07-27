@@ -149,7 +149,7 @@ export class VectorIndex {
     const node = this.nodes.get(id);
     if (!node) return false;
 
-    // Remove from all neighbor lists
+    // Collect all orphaned neighbors that need reconnection
     for (const [level, neighborIds] of node.neighbors) {
       for (const neighborId of neighborIds) {
         const neighbor = this.nodes.get(neighborId);
@@ -157,12 +157,52 @@ export class VectorIndex {
         const conns = neighbor.neighbors.get(level) || [];
         neighbor.neighbors.set(level, conns.filter(nid => nid !== id));
       }
+
+      // Reconnect orphaned neighbors to each other to prevent graph islands
+      if (neighborIds.length >= 2) {
+        for (let i = 0; i < neighborIds.length; i++) {
+          for (let j = i + 1; j < neighborIds.length; j++) {
+            const nA = this.nodes.get(neighborIds[i]);
+            const nB = this.nodes.get(neighborIds[j]);
+            if (!nA || !nB) continue;
+            const connsA = nA.neighbors.get(level) || [];
+            const connsB = nB.neighbors.get(level) || [];
+            const maxConn = level === 0 ? this.mMax0 : this.m;
+            if (!connsA.includes(neighborIds[j]) && connsA.length < maxConn) {
+              connsA.push(neighborIds[j]);
+              nA.neighbors.set(level, connsA);
+            }
+            if (!connsB.includes(neighborIds[i]) && connsB.length < maxConn) {
+              connsB.push(neighborIds[i]);
+              nB.neighbors.set(level, connsB);
+            }
+          }
+        }
+      }
     }
 
     this.nodes.delete(id);
 
+    // Pick the most-connected node as new entry point (not arbitrary)
     if (this.entryPointId === id) {
-      this.entryPointId = this.nodes.size > 0 ? this.nodes.keys().next().value ?? null : null;
+      if (this.nodes.size === 0) {
+        this.entryPointId = null;
+        this.maxLevel = 0;
+      } else {
+        let bestId: string | null = null;
+        let bestConns = -1;
+        for (const [nid, n] of this.nodes) {
+          let totalConns = 0;
+          for (const neighbors of n.neighbors.values()) {
+            totalConns += neighbors.length;
+          }
+          if (totalConns > bestConns) {
+            bestConns = totalConns;
+            bestId = nid;
+          }
+        }
+        this.entryPointId = bestId;
+      }
     }
 
     return true;
