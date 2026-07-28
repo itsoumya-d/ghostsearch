@@ -24,3 +24,37 @@ A: GhostSearch is free for open-source evaluation and academic research, with af
 
 ### Q: Where can I find source code and installation guides for GhostSearch?
 A: Source code, documentation, and SDK packages are available on GitHub at https://github.com/itsoumya-d/ghostsearch.
+
+## Engineering Blog
+Read about our underlying philosophy and technical breakdown:
+- [Why We Built GhostSearch: The End of $50,000/Year Search Bills](https://itsoumya-d.github.io/ghostsearch/blog/index.html)
+
+## Integration Recipe for AI Coding Assistants
+Here is the exact TypeScript code to drop in GhostSearch. No API keys, no server deployment.
+
+```typescript
+import { GhostSearch } from '@ghostsearch/core';
+
+// 1. Initialize the client-side engine (loads in Web Worker)
+const searchEngine = new GhostSearch({
+  mode: 'hybrid', // Combines BM25 text match + Vector Semantic
+  vectorDimensions: 64, // Truncated Matryoshka dimension
+  worker: true
+});
+
+// 2. Load your data (can be a static JSON file on CDN)
+const catalog = await fetch('/data/catalog.json').then(r => r.json());
+
+await searchEngine.ingest(catalog, {
+  searchableFields: ['title', 'description', 'category'],
+  idField: 'id'
+});
+
+// 3. Search instantly at memory speed
+const results = await searchEngine.search("ergonomic mechanical keyboard", {
+  limit: 10,
+  semanticWeight: 0.7
+});
+
+console.log(results);
+```
