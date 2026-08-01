@@ -828,7 +828,7 @@
             
             <div style="margin-top: 48px; display: flex; gap: 16px; justify-content: center;">
                 <a href="#docs" class="btn btn-primary">Quick Start</a>
-                <a href="https://github.com/soumyadebnath/ghostsearch" class="btn btn-secondary">View on GitHub</a>
+                <a href="https://github.com/itsoumya-d/ghostsearch" class="btn btn-secondary">View on GitHub</a>
             </div>
         </div>
     </section>
@@ -950,7 +950,7 @@
                     <div id="tab-install" class="code-pane active">
 <span class="code-keyword">npm</span> install ghostsearch
 <span class="code-comment"># Or use CDN</span>
-<span class="code-keyword">&lt;script</span> src="https://cdn.jsdelivr.net/npm/ghostsearch"&gt;<span class="code-keyword">&lt;/script&gt;</span>
+<span class="code-keyword">&lt;script</span> src="https://cdn.jsdelivr.net/gh/itsoumya-d/ghostsearch@main/dist/index.mjs"&gt;<span class="code-keyword">&lt;/script&gt;</span>
                     </div>
                     
                     <div id="tab-init" class="code-pane">
@@ -1095,6 +1095,12 @@ console.<span class="code-func">log</span>(results);
     </footer>
 
     <script>
+    // Wrapped in DOMContentLoaded: this block references #cmd-modal / #cmd-input /
+    // #cmd-results, which are declared further down the document. Running at parse
+    // time made them null, so cmdModal.addEventListener() threw a TypeError and
+    // killed the rest of the script - the command palette never opened and every
+    // GSAP animation below it (including the cost counters) never ran.
+    document.addEventListener("DOMContentLoaded", function () {
         // Tab switching logic
         document.querySelectorAll('.tab').forEach(tab => {
             tab.addEventListener('click', () => {
@@ -1467,6 +1473,7 @@ console.<span class="code-func">log</span>(results);
             once: true
         });
 
+    });
     </script>
     <div class="cmd-modal-overlay" id="cmd-modal">
         <div class="cmd-modal">
