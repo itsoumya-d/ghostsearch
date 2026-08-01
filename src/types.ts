@@ -12,7 +12,13 @@ export interface GhostSearchOptions {
 }
 
 export interface SearchOptions {
-  query: string;
+  /**
+   * Optional. `search(query, options)` already takes the query as its first
+   * positional argument, so this field is redundant there. Declaring it as
+   * required made every documented `search()` call a TS2345 compile error for
+   * TypeScript consumers, and broke `tsc --noEmit` inside this repo too.
+   */
+  query?: string;
   limit?: number;
   offset?: number;
   fuzzy?: boolean | number;

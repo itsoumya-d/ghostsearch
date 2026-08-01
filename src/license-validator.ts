@@ -23,18 +23,20 @@ export class LicenseValidator {
     }
 
     if (!key || !key.startsWith("BSL11-")) {
-      console.warn(`
-================================================================================
-🔒 COMMERCIAL USE WARNING — BUSINESS SOURCE LICENSE 1.1 REQUIRED
-Product: GHOSTSEARCH | Copyright (c) 2024-2026 Soumya Debnath
-
-Production use of this software requires a valid paid commercial license key.
-Unlicensed commercial deployment constitutes copyright infringement under DMCA § 1201.
-
-Purchase a commercial license key:
-📧 Email: soumyadebnath1661@gmail.com | 📞 Phone: +91 7031648617
-================================================================================
-      `);
+      // This warning is emitted once per GhostSearch instance, inside the
+      // consumer's browser console and their log/error-reporting pipeline.
+      // Two deliberate changes from the previous message:
+      //   1. No personal phone number. Shipping one in dist/ turns every
+      //      downstream deployment into a third-party PII disclosure.
+      //   2. No "DMCA § 1201" assertion. That section governs circumvention of
+      //      technical protection measures, not unlicensed use; the operative
+      //      terms are ordinary copyright plus the BSL 1.1 grant in LICENSE.
+      console.warn(
+        `GhostSearch: production use requires a commercial license under the ` +
+        `Business Source License 1.1. See LICENSE and COMMERCIAL_LICENSE.md, or ` +
+        `contact ${LicenseValidator.CONTACT} to obtain a key. ` +
+        `Set COMMERCIAL_LICENSE_KEY to silence this warning.`
+      );
       return false;
     }
 

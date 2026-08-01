@@ -4,22 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Why We Built GhostSearch: The End of $50,000/Year Search Bills</title>
-    <meta name="description" content="A first-principles breakdown of why cloud SaaS search is fundamentally broken, and how client-side vector search and Matryoshka embeddings are making it obsolete.">
-    <meta name="keywords" content="GhostSearch, Algolia Alternative, Client-Side Search, Web Workers, Vector Search, SaaS pricing, WebAssembly, Matryoshka Embeddings">
+    <meta name="description" content="A first-principles breakdown of when cloud SaaS search is worth paying for, when client-side search replaces it, and the measured limits of running an index in the browser.">
+    <meta name="keywords" content="GhostSearch, Algolia Alternative, Client-Side Search, Web Workers, Vector Search, SaaS pricing, FlexSearch, Matryoshka Embeddings">
     
     <!-- Open Graph / Facebook -->
+    <link rel="canonical" href="https://itsoumya-d.github.io/ghostsearch/blog/index.html">
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://itsoumya-d.github.io/ghostsearch/blog/index.html">
     <meta property="og:title" content="Why We Built GhostSearch: The End of $50,000/Year Search Bills">
-    <meta property="og:description" content="A first-principles breakdown of why cloud SaaS search is fundamentally broken, and how client-side vector search and Matryoshka embeddings are making it obsolete.">
-    <meta property="og:image" content="https://itsoumya-d.github.io/ghostsearch/og-image.png">
+    <meta property="og:description" content="A first-principles breakdown of when cloud SaaS search is worth paying for, when client-side search replaces it, and the measured limits of running an index in the browser.">
 
     <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
+    <!-- summary (not summary_large_image): no og-image asset exists in this repo yet.
+         Add og-image.png at the site root and restore summary_large_image + og:image. -->
+    <meta property="twitter:card" content="summary">
     <meta property="twitter:url" content="https://itsoumya-d.github.io/ghostsearch/blog/index.html">
     <meta property="twitter:title" content="Why We Built GhostSearch: The End of $50,000/Year Search Bills">
-    <meta property="twitter:description" content="A first-principles breakdown of why cloud SaaS search is fundamentally broken, and how client-side vector search and Matryoshka embeddings are making it obsolete.">
-    <meta property="twitter:image" content="https://itsoumya-d.github.io/ghostsearch/og-image.png">
+    <meta property="twitter:description" content="A first-principles breakdown of when cloud SaaS search is worth paying for, when client-side search replaces it, and the measured limits of running an index in the browser.">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,7 +37,6 @@
         "@id": "https://itsoumya-d.github.io/ghostsearch/blog/index.html"
       },
       "headline": "Why We Built GhostSearch: The End of $50,000/Year Search Bills",
-      "image": "https://itsoumya-d.github.io/ghostsearch/og-image.png",
       "author": {
         "@type": "Organization",
         "name": "GhostSearch Engineering"
@@ -301,7 +301,7 @@
                 <li>Massive profit margins on top of AWS bandwidth.</li>
             </ul>
 
-            <p>GhostSearch flips this model. It computes an inverted index and vector embeddings <em>on the client</em> using WebAssembly and Web Workers. The search runs at the speed of memory. The cost is exactly $0.</p>
+            <p>GhostSearch flips this model. It builds a FlexSearch inverted index &mdash; and optionally a vector index &mdash; <em>on the client</em>, in plain JavaScript, with an optional Web Worker to keep index construction off the UI thread. (There is no WebAssembly in the implementation.) The search runs at the speed of memory. The serving cost is $0.</p>
 
             <h2>How GhostSearch Works: Client-Side Vector Search</h2>
 
@@ -309,7 +309,11 @@
 
             <p>Our breakthrough was combining <strong>Matryoshka embeddings</strong> with highly optimized <strong>Web Worker concurrency</strong>.</p>
             
-            <p>Matryoshka representations allow us to truncate embeddings without significant loss of accuracy. We can slice a 768-dimensional vector down to 64 dimensions for a rapid first-pass approximate nearest neighbor (ANN) search, and only evaluate the full dimensionality on the top 100 results. All of this happens via WebGPU or WASM SIMD, off the main thread.</p>
+            <p>Matryoshka representations let you truncate an embedding and keep most of its signal &mdash; <em>provided the model was trained with an MRL objective</em>. That caveat matters here, and we want to be straight about where the current build stands.</p>
+
+            <p>The shipped embedder is <strong>not</strong> a trained transformer. It is a deterministic FNV-1a feature hasher over character n-grams, chosen so there is no model download. That makes it fast and offline, but it measures spelling overlap rather than meaning: <code>mission</code>/<code>emission</code> score 0.92 cosine, while <code>car</code>/<code>automobile</code> score below zero. It also means MRL truncation has no trained structure to exploit &mdash; measured recall@10 on 1,000 documents is 0.52 for the 64d funnel versus 1.00 for a full HNSW traversal. Truncation currently costs accuracy instead of buying speed.</p>
+
+            <p>Everything runs in plain JavaScript on the CPU. There is no WebGPU and no WASM SIMD in the implementation. Plugging in a real ONNX/Transformers.js embedder is the obvious next step and is not done yet.</p>
 
             <div class="table-container">
                 <table>
@@ -324,7 +328,7 @@
                         <tr>
                             <td>Latency (P99)</td>
                             <td>120ms (Network bound)</td>
-                            <td>&lt; 5ms (CPU bound)</td>
+                            <td>0.16ms at 1k docs, 1.6ms at 10k, 45ms at 100k (CPU bound)</td>
                         </tr>
                         <tr>
                             <td>Cost for 1M searches/mo</td>
@@ -339,7 +343,7 @@
                         <tr>
                             <td>Vector Semantic Search</td>
                             <td>Premium Enterprise Tier</td>
-                            <td>Included (Matryoshka WebGPU)</td>
+                            <td>Included, but with a hash-based embedder (not a trained model)</td>
                         </tr>
                         <tr>
                             <td>Infrastructure Setup</td>
@@ -352,43 +356,47 @@
 
             <h2>Integration Recipe for Developers & AI Agents</h2>
 
-            <p>If you're building an app or instructing an AI coding assistant to implement search, here is the exact TypeScript code to drop in. No API keys, no server deployment.</p>
+            <p>If you're building an app or instructing an AI coding assistant to implement search, here is the verified API. Every line below is exercised by the test suite in the repository.</p>
 
-            <pre><code><span class="keyword">import</span> { GhostSearch } <span class="keyword">from</span> <span class="string">'@ghostsearch/core'</span>;
+            <pre><code><span class="comment">// Not on npm yet. Import from the CDN &mdash; an import map is required, because</span>
+<span class="comment">// dist/index.mjs imports FlexSearch as a bare specifier.</span>
+<span class="keyword">import</span> { GhostSearch } <span class="keyword">from</span> <span class="string">'https://cdn.jsdelivr.net/gh/itsoumya-d/ghostsearch@main/dist/index.mjs'</span>;
 
-<span class="comment">// 1. Initialize the client-side engine (loads in Web Worker)</span>
-<span class="keyword">const</span> searchEngine = <span class="keyword">new</span> GhostSearch({
-  mode: <span class="string">'hybrid'</span>, <span class="comment">// Combines BM25 text match + Vector Semantic</span>
-  vectorDimensions: <span class="operator">64</span>, <span class="comment">// Truncated Matryoshka dimension</span>
-  worker: <span class="keyword">true</span>
-});
+<span class="comment">// 1. Create the engine. `fields` lists the document keys to index.</span>
+<span class="keyword">const</span> searchEngine = <span class="keyword">new</span> GhostSearch({ fields: [<span class="string">'title'</span>, <span class="string">'description'</span>, <span class="string">'category'</span>] });
 
-<span class="comment">// 2. Load your data (can be a static JSON file on CDN)</span>
+<span class="comment">// 2. Load your data. Each document needs a unique string `id`.</span>
+<span class="comment">//    addDocuments() is synchronous &mdash; there is no ingest() method.</span>
 <span class="keyword">const</span> catalog = <span class="keyword">await</span> fetch(<span class="string">'/data/catalog.json'</span>).then(r => r.json());
+searchEngine.addDocuments(catalog);
 
-<span class="keyword">await</span> searchEngine.ingest(catalog, {
-  searchableFields: [<span class="string">'title'</span>, <span class="string">'description'</span>, <span class="string">'category'</span>],
-  idField: <span class="string">'id'</span>
-});
+<span class="comment">// 3. Keyword search. search() is SYNCHRONOUS and returns</span>
+<span class="comment">//    { hits, totalHits, queryTimeMs }.</span>
+<span class="keyword">const</span> results = searchEngine.search(<span class="string">'ergonomic mechanical keyboard'</span>, { limit: <span class="operator">10</span> });
+console.log(results.hits);
 
-<span class="comment">// 3. Search instantly at memory speed</span>
-<span class="keyword">const</span> results = <span class="keyword">await</span> searchEngine.search(<span class="string">"ergonomic mechanical keyboard"</span>, {
+<span class="comment">// 4. Optional hybrid keyword + vector search. Must be enabled first, and</span>
+<span class="comment">//    unlike search() these two are async.</span>
+<span class="keyword">await</span> searchEngine.enableSemanticSearch({ dimensions: <span class="operator">384</span> });
+<span class="keyword">const</span> hybrid = <span class="keyword">await</span> searchEngine.hybridSearch(<span class="string">'ergonomic mechanical keyboard'</span>, {
   limit: <span class="operator">10</span>,
-  semanticWeight: <span class="operator">0.7</span>
+  keywordWeight: <span class="operator">0.4</span>,
+  semanticWeight: <span class="operator">0.6</span>,
 });
+console.log(hybrid.hits);</code></pre>
 
-console.log(results);</code></pre>
+            <p>There is no <code>@ghostsearch/core</code> package, no <code>ingest()</code> method, and no <code>mode</code>, <code>vectorDimensions</code> or <code>worker</code> constructor option. The full verified API surface is in the <a href="https://github.com/itsoumya-d/ghostsearch/blob/main/README.md#-api-reference">README</a>.</p>
 
             <h2>FAQ</h2>
 
             <div class="faq-item">
                 <h3>What if my dataset is massive (10GB+)?</h3>
-                <p>GhostSearch is designed for datasets up to roughly 100MB-200MB (compressed). For a multi-gigabyte dataset (like searching all of Wikipedia), you still need a server. But remember: 95% of B2B SaaS apps, blogs, and stores have catalogs well under 50MB.</p>
+                <p>In practice memory binds well before raw dataset size does. Measured heap is roughly 3.4&ndash;5.3 MB per 1,000 documents, so 100,000 documents costs 340&ndash;530 MB resident &mdash; fine on a desktop, hostile on a low-end phone. Treat the low tens of thousands of documents as the comfortable range, and reach for a server-side engine beyond that. For a multi-gigabyte corpus (searching all of Wikipedia), you still need a server.</p>
             </div>
 
             <div class="faq-item">
                 <h3>Does this drain the user's battery?</h3>
-                <p>No. Indexing happens once (and is cached in IndexedDB). Searching via Matryoshka embeddings takes milliseconds and uses a fraction of the CPU cycle that rendering a complex React component would.</p>
+                <p>Searching is cheap &mdash; sub-millisecond up to about 10,000 documents. Indexing is the expensive part, and you should know two things. First, it runs on every page load: there is <strong>no</strong> IndexedDB persistence in the library today, so nothing is cached between sessions &mdash; use <code>GhostWorker</code> to keep that work off the UI thread. Second, it is not free: about 1.2 s for 10,000 documents and 12 s for 100,000 on a 2 vCPU machine. Memory is the real ceiling, at roughly 3.4&ndash;5.3 MB of heap per 1,000 documents depending on vocabulary size.</p>
             </div>
 
             <div class="faq-item">

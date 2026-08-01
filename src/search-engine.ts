@@ -111,8 +111,10 @@ export class SearchEngine<T extends GhostDocument> {
     const hits = paginatedIds.map(id => {
       const document = this.documents.get(id)!;
       const score = idMap.get(id)!;
-      let highlights = undefined;
-      
+      // Explicitly typed: inferring `{}` made the index assignment below a
+      // TS7053 implicit-any error, which broke `npm run typecheck`.
+      let highlights: Record<string, string> | undefined = undefined;
+
       if (opts.highlight) {
         highlights = {};
         for (const field of this.options.fields) {
@@ -136,7 +138,7 @@ export class SearchEngine<T extends GhostDocument> {
   }
 
   suggest(query: string, limit: number = 5): string[] {
-    const results = this.search(query, { limit });
+    const results = this.search(query, { query, limit });
     const suggestions = results.hits
       .map(hit => {
         const doc = hit.document as any;

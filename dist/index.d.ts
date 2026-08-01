@@ -1,4 +1,4 @@
-import { G as GhostDocument, S as SearchOptions, b as SearchResult, a as GhostSearchOptions } from './types-D4mp6fLX.js';
+import { G as GhostDocument, S as SearchOptions, b as SearchResult, a as GhostSearchOptions } from './types-DB5UXTjD.js';
 
 /**
  * HNSW (Hierarchical Navigable Small World) vector index for client-side
@@ -174,6 +174,7 @@ declare class GhostSearch<T extends GhostDocument> {
     private vectorIndex;
     private embeddingEngine;
     private documents;
+    private pendingVectorWrites;
     constructor(options?: any);
     /**
      * Enable semantic vector search on this instance.
@@ -188,6 +189,15 @@ declare class GhostSearch<T extends GhostDocument> {
     addDocuments(docs: T[]): void;
     removeDocument(id: string): void;
     updateDocument(doc: T): void;
+    /**
+     * Resolves once every vector write started by addDocument/addDocuments/
+     * updateDocument has settled.
+     *
+     * Those methods are synchronous but the embedding write they trigger is async,
+     * so `vectorIndexSize` and `semanticSearch()` could previously miss documents
+     * that had just been added, with no documented way to wait.
+     */
+    whenIndexed(): Promise<void>;
     search(query: string, options?: SearchOptions): SearchResult<T>;
     suggest(query: string, limit?: number): string[];
     exportIndex(): string;
@@ -211,19 +221,35 @@ declare class GhostSearch<T extends GhostDocument> {
     get isSemanticEnabled(): boolean;
     clear(): void;
     dispose(): void;
+    /**
+     * addDocument()/updateDocument() are synchronous, so the promise returned by
+     * indexDocumentVector() cannot be handed to the caller. Left unhandled, any
+     * failure inside vector indexing escaped as an unhandled promise rejection —
+     * which terminates the process on Node >= 15 and is impossible for consumer
+     * code to catch. Log it instead, and keep the handle so whenIndexed() can await it.
+     */
+    private trackVectorIndexing;
     private indexDocumentVector;
 }
 
+/** Milliseconds to wait for a worker reply before rejecting. */
+declare const DEFAULT_WORKER_TIMEOUT_MS = 30000;
 declare class GhostWorker<T extends GhostDocument> {
     private worker;
     private messageId;
     private resolvers;
-    constructor(options: GhostSearchOptions, workerUrl?: string);
+    private readonly timeoutMs;
+    private failure;
+    constructor(options: GhostSearchOptions, workerUrl?: string, timeoutMs?: number);
+    /** Reject everything outstanding and latch the failure for subsequent calls. */
+    private fail;
     private handleMessage;
     private postMessage;
+    /** Terminate the underlying worker and reject anything still pending. */
+    dispose(): void;
     addDocument(doc: T): Promise<void>;
     addDocuments(docs: T[]): Promise<void>;
     search(query: string, options?: SearchOptions): Promise<SearchResult<T>>;
 }
 
-export { EmbeddingEngine, type EmbeddingEngineOptions, type EmbeddingResult, GhostDocument, GhostSearch, GhostSearchOptions, GhostWorker, type HybridSearchResult, SearchOptions, SearchResult, type SemanticSearchOptions, type VectorEntry, VectorIndex, type VectorIndexOptions, type VectorSearchResult };
+export { DEFAULT_WORKER_TIMEOUT_MS, EmbeddingEngine, type EmbeddingEngineOptions, type EmbeddingResult, GhostDocument, GhostSearch, GhostSearchOptions, GhostWorker, type HybridSearchResult, SearchOptions, SearchResult, type SemanticSearchOptions, type VectorEntry, VectorIndex, type VectorIndexOptions, type VectorSearchResult };

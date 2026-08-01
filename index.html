@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GhostSearch — Client-Side Full-Text Search</title>
-    <meta name="description" content="GhostSearch is the best free Algolia alternative. Search 100K docs in <1ms. Client-side full-text search with zero servers.">
+    <meta name="description" content="GhostSearch is a client-side full-text search engine with zero servers. Sub-millisecond queries up to ~10,000 documents; ~20ms at 100,000. Source-available under BSL 1.1.">
     <meta name="robots" content="index, follow">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,10 +20,12 @@
       "@type": "SoftwareApplication",
       "name": "GhostSearch",
       "applicationCategory": "DeveloperApplication",
+      "license": "https://github.com/itsoumya-d/ghostsearch/blob/main/LICENSE",
       "offers": {
         "@type": "Offer",
-        "price": "0.00",
-        "priceCurrency": "USD"
+        "price": "299.00",
+        "priceCurrency": "USD",
+        "description": "Business Source License 1.1. Free for personal evaluation, academic research and PR contributions. Production use requires a paid commercial licence, from $299/year."
       }
     }
     </script>
@@ -37,7 +39,7 @@
           "name": "What is the best free alternative to Algolia?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "GhostSearch is the best free Algolia alternative for static sites and client-side applications. It runs entirely in the browser, meaning zero server costs, while still delivering sub-millisecond search performance on datasets up to 100K documents."
+            "text": "GhostSearch is a client-side alternative to hosted search for static sites and client-side applications. It runs entirely in the browser, so there is no search server and no per-query API cost. Measured query latency is sub-millisecond up to roughly 10,000 documents and about 20ms at 100,000, where heap use (~340-530MB) becomes the binding constraint. It is source-available under BSL 1.1: production use requires a paid licence."
           }
         }
       ]
@@ -911,7 +913,7 @@
                 <div class="arch-step gs-step">
                     <div class="arch-icon">01</div>
                     <h3>Index</h3>
-                    <p>GhostSearch creates a highly compressed inverted index of your documents at build time.</p>
+                    <p>GhostSearch ships your documents to the browser and builds the FlexSearch inverted index there, in memory, on load.</p>
                 </div>
                 <div class="arch-step gs-step">
                     <div class="arch-icon">02</div>
@@ -951,7 +953,13 @@
                     <div id="tab-install" class="code-pane active">
 <span class="code-keyword">npm</span> install ghostsearch
 <span class="code-comment"># Or use CDN</span>
-<span class="code-keyword">&lt;script</span> src="https://cdn.jsdelivr.net/gh/itsoumya-d/ghostsearch@main/dist/index.mjs"&gt;<span class="code-keyword">&lt;/script&gt;</span>
+<span class="code-comment">&lt;!-- An import map is required: dist/index.mjs imports FlexSearch as a bare specifier. --&gt;</span>
+<span class="code-keyword">&lt;script</span> type="importmap"&gt;
+{ "imports": { "flexsearch": "https://cdn.jsdelivr.net/npm/flexsearch@0.7.43/+esm" } }
+<span class="code-keyword">&lt;/script&gt;</span>
+<span class="code-keyword">&lt;script</span> type="module"&gt;
+  <span class="code-keyword">import</span> { GhostSearch } <span class="code-keyword">from</span> <span class="code-string">'https://cdn.jsdelivr.net/gh/itsoumya-d/ghostsearch@main/dist/index.mjs'</span>;
+<span class="code-keyword">&lt;/script&gt;</span>
                     </div>
                     
                     <div id="tab-init" class="code-pane">
@@ -1043,7 +1051,7 @@ console.<span class="code-func">log</span>(results);
                 <div class="faq-item">
                     <div class="faq-question">What is the best free alternative to Algolia? <span class="faq-icon">+</span></div>
                     <div class="faq-answer">
-                        <p>GhostSearch is the best free Algolia alternative for static sites and client-side applications. It runs entirely in the browser, meaning zero server costs, while still delivering sub-millisecond search performance on datasets up to 100K documents.</p>
+                        <p>GhostSearch is a client-side alternative to hosted search for static sites and client-side applications. It runs entirely in the browser, so there is no search server and no per-query API cost. Measured query latency is sub-millisecond up to roughly 10,000 documents and about 20ms at 100,000, where heap use (~340&ndash;530MB) becomes the binding constraint. It is source-available under BSL 1.1: production use requires a paid licence.</p>
                     </div>
                 </div>
                 <div class="faq-item">
@@ -1055,7 +1063,7 @@ console.<span class="code-func">log</span>(results);
                 <div class="faq-item">
                     <div class="faq-question">Won't downloading the index slow down my site? <span class="faq-icon">+</span></div>
                     <div class="faq-answer">
-                        <p>Not if configured correctly. GhostSearch indexes are heavily compressed. A 10K document dataset typically compresses to ~200KB. This payload can be fetched asynchronously or lazily loaded only when the user clicks the search bar.</p>
+                        <p>Be realistic about the payload. <code>exportIndex()</code> emits your documents as plain, uncompressed JSON &mdash; measured at about 865KB for 10,000 short records (roughly 200KB over the wire once your server applies gzip or brotli). It is a document dump, not a serialized index, so the client still tokenizes on load. Fetch it asynchronously, or lazily when the user first focuses the search bar.</p>
                     </div>
                 </div>
             </div>

@@ -41,6 +41,14 @@ This is the real, verified API surface. It is exercised by the test suite in thi
 
 ```javascript
 // Not on npm yet — import from the CDN, or build from source.
+// IMPORTANT: dist/index.mjs leaves FlexSearch external, so it contains a bare
+// `import ... from "flexsearch"`. Browsers cannot resolve bare specifiers, so the
+// page must declare an import map BEFORE this module, or the import fails with
+// `Failed to resolve module specifier "flexsearch"`:
+//   <script type="importmap">
+//   { "imports": { "flexsearch": "https://cdn.jsdelivr.net/npm/flexsearch@0.7.43/+esm" } }
+//   </script>
+// Bundler users need no import map; FlexSearch resolves from node_modules.
 import { GhostSearch } from 'https://cdn.jsdelivr.net/gh/itsoumya-d/ghostsearch@main/dist/index.mjs';
 
 // 1. Create the engine. `fields` lists the document keys to index.
@@ -80,8 +88,20 @@ Method notes for code-generating agents:
 - There is **no** `ingest()` method, no `mode` constructor option, and no `@ghostsearch/core`
   package. Use `addDocuments()` and the constructor shape shown above.
 - Other real methods: `addDocument`, `removeDocument`, `updateDocument`, `suggest`,
-  `exportIndex`, `importIndex`, `clear`, `dispose`. Properties: `documentCount`,
+  `exportIndex`, `importIndex`, `clear`, `dispose`, `whenIndexed`. Properties: `documentCount`,
   `isSemanticEnabled`, `vectorIndexSize`.
+- `addDocument`/`addDocuments` are synchronous, but when semantic search is enabled the vector
+  write they trigger is async. `await whenIndexed()` before reading `vectorIndexSize` or calling
+  `semanticSearch()`, or the newest documents may not be there yet.
+- `SearchOptions.query` is optional; pass the query as the first positional argument to `search()`.
+- `exportIndex()` is synchronous and returns the **documents** as JSON, not a serialized index.
+  `importIndex()` re-tokenizes them, so it costs about the same as `addDocuments()`.
+- The embedder behind `enableSemanticSearch()` is a deterministic feature hasher, not a trained
+  model: it matches spelling, not meaning. `modelUrl`/`tokenizerUrl` are accepted but ignored.
+- Scores are the sum of matched-field boosts — no TF-IDF/BM25, and no phrase or proximity queries.
+- `GhostWorker` and `ghostsearch/worker-script` need browser `Worker`/`self` globals and throw
+  under plain Node. The published worker files cannot be loaded by a browser Worker as-is
+  (one is CommonJS, the other has a bare `flexsearch` import) — bundle your own worker script.
 
 ## Optional
 

@@ -30,6 +30,7 @@ export class GhostSearch<T extends GhostDocument> {
   private vectorIndex: VectorIndex | null = null;
   private embeddingEngine: EmbeddingEngine | null = null;
   private documents: Map<string, T> = new Map();
+  private pendingVectorWrites: Set<Promise<void>> = new Set();
 
   constructor(options?: any) {
     LicenseValidator.validate(options);
@@ -67,7 +68,7 @@ export class GhostSearch<T extends GhostDocument> {
     this.engine.add(doc);
     this.documents.set(doc.id, doc);
     if (this.embeddingEngine && this.vectorIndex) {
-      this.indexDocumentVector(doc.id, doc);
+      this.trackVectorIndexing(doc.id, doc);
     }
   }
 
@@ -88,7 +89,21 @@ export class GhostSearch<T extends GhostDocument> {
     this.documents.set(doc.id, doc);
     if (this.embeddingEngine && this.vectorIndex) {
       this.vectorIndex.remove(doc.id);
-      this.indexDocumentVector(doc.id, doc);
+      this.trackVectorIndexing(doc.id, doc);
+    }
+  }
+
+  /**
+   * Resolves once every vector write started by addDocument/addDocuments/
+   * updateDocument has settled.
+   *
+   * Those methods are synchronous but the embedding write they trigger is async,
+   * so `vectorIndexSize` and `semanticSearch()` could previously miss documents
+   * that had just been added, with no documented way to wait.
+   */
+  async whenIndexed(): Promise<void> {
+    while (this.pendingVectorWrites.size > 0) {
+      await Promise.all(Array.from(this.pendingVectorWrites));
     }
   }
 
@@ -231,6 +246,24 @@ export class GhostSearch<T extends GhostDocument> {
   }
 
   // --- Private helpers ---
+
+  /**
+   * addDocument()/updateDocument() are synchronous, so the promise returned by
+   * indexDocumentVector() cannot be handed to the caller. Left unhandled, any
+   * failure inside vector indexing escaped as an unhandled promise rejection —
+   * which terminates the process on Node >= 15 and is impossible for consumer
+   * code to catch. Log it instead, and keep the handle so whenIndexed() can await it.
+   */
+  private trackVectorIndexing(id: string, doc: T): void {
+    const p = this.indexDocumentVector(id, doc)
+      .catch(err => {
+        console.error(`GhostSearch: vector indexing failed for document "${id}":`, err);
+      })
+      .finally(() => {
+        this.pendingVectorWrites.delete(p);
+      });
+    this.pendingVectorWrites.add(p);
+  }
 
   private async indexDocumentVector(id: string, doc: T): Promise<void> {
     if (!this.embeddingEngine || !this.vectorIndex) return;

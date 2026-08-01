@@ -112,17 +112,26 @@ export class VectorIndex {
         const neighborNode = this.nodes.get(neighbor.id);
         if (!neighborNode) continue;
 
-        const neighborConns = neighborNode.neighbors.get(l) || [];
+        // Drop references to nodes that no longer exist before reading them back.
+        // remove() can only clean up the edges it knows about, and neighbour lists
+        // become asymmetric once pruning has run, so a deleted node can still be
+        // referenced here. The previous `this.nodes.get(nid)!` assertion then
+        // dereferenced undefined and threw
+        // "TypeError: Cannot read properties of undefined (reading 'vector')".
+        const neighborConns = (neighborNode.neighbors.get(l) || []).filter(nid => this.nodes.has(nid));
         neighborConns.push(entry.id);
 
         // Prune if too many connections
         if (neighborConns.length > maxConn) {
           const pruned = this.selectNeighbors(
             neighborNode.vector,
-            neighborConns.map(nid => ({
-              id: nid,
-              score: this.cosineSimilarity(neighborNode.vector, this.nodes.get(nid)!.vector)
-            })),
+            neighborConns.map(nid => {
+              const target = this.nodes.get(nid);
+              return {
+                id: nid,
+                score: target ? this.cosineSimilarity(neighborNode.vector, target.vector) : -Infinity
+              };
+            }),
             maxConn
           );
           neighborNode.neighbors.set(l, pruned.map(p => p.id));
@@ -329,8 +338,11 @@ export class VectorIndex {
   }
 
   private greedySearch(query: Float32Array, startId: string, level: number): string {
+    const startNode = this.nodes.get(startId);
+    if (!startNode) return startId;
+
     let bestId = startId;
-    let bestDist = this.cosineSimilarity(query, this.nodes.get(startId)!.vector);
+    let bestDist = this.cosineSimilarity(query, startNode.vector);
     let improved = true;
 
     while (improved) {
@@ -361,7 +373,10 @@ export class VectorIndex {
     const candidates: Array<{ id: string; score: number }> = [];
     const results: Array<{ id: string; score: number }> = [];
 
-    const startScore = this.cosineSimilarity(query, this.nodes.get(startId)!.vector);
+    const startNode = this.nodes.get(startId);
+    if (!startNode) return results;
+
+    const startScore = this.cosineSimilarity(query, startNode.vector);
     candidates.push({ id: startId, score: startScore });
     results.push({ id: startId, score: startScore });
     visited.add(startId);
