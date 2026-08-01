@@ -33,7 +33,7 @@ License: Business Source License 1.1. Source-available; production use requires 
 
 - [LICENSE (BSL 1.1)](https://github.com/itsoumya-d/ghostsearch/blob/main/LICENSE)
 - [Commercial licensing](https://github.com/itsoumya-d/ghostsearch/blob/main/COMMERCIAL_LICENSE.md)
-- Contact: soumyadebnath1661@gmail.com
+- Contact: soumyadebnath1619@gmail.com
 
 ## Integration recipe
 
