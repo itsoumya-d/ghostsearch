@@ -96,3 +96,79 @@ describe('adversarial / resilience', () => {
     s.dispose(); assert.equal(s.isSemanticEnabled, false);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Regression guards added during an external audit. Each of these reproduced a
+// real failure before the accompanying fix; they exist to stop it coming back.
+// ---------------------------------------------------------------------------
+describe('regression: highlight must not compile the query as a regex', () => {
+  const hdocs = [{ id: '1', title: 'Buy the new apple iPhone today', content: 'apple (fruit)' }];
+  const hs = () => { const s = new GhostSearch({ fields: ['title', 'content'] }); s.addDocuments(hdocs); return s; };
+
+  // `new RegExp('(' + term + ')')` threw SyntaxError for any query containing
+  // unbalanced regex metacharacters, so a user typing "a)" broke search entirely.
+  for (const q of ['a)', '((((((((((a', 'a{2,', '[', '\\', 'app*le', 'f(x)', '?', '+', '|']) {
+    test(`query ${JSON.stringify(q)} does not throw with highlight:true`, () => {
+      assert.doesNotThrow(() => hs().search(q, { highlight: true }));
+    });
+  }
+  test('highlighting still wraps matches in the requested tag', () => {
+    const h = hs().search('apple', { highlight: true, highlightTag: 'strong' }).hits[0].highlights;
+    assert.match(h.title, /<strong>apple<\/strong>/i);
+  });
+  test('highlightTag cannot inject markup', () => {
+    const h = hs().search('apple', { highlight: true, highlightTag: 'script>alert(1)</script' }).hits[0].highlights;
+    assert.ok(!h.title.includes('<script>'), 'must fall back to a safe tag');
+    assert.match(h.title, /<mark>apple<\/mark>/i);
+  });
+});
+
+describe('regression: SearchOptions.query must stay optional', () => {
+  // Declaring it required made every documented search() call a TS2345 error.
+  test('search(query, options) works without repeating the query', () => {
+    const s = new GhostSearch({ fields: ['title'] });
+    s.addDocuments([{ id: '1', title: 'machine learning' }]);
+    assert.equal(s.search('machine', { limit: 5 }).hits.length, 1);
+    assert.deepEqual(s.suggest('machine'), ['machine learning']);
+  });
+});
+
+describe('regression: VectorIndex survives interleaved add/remove', () => {
+  const D = 8;
+  const rv = seed => { let x = seed; const v = new Float32Array(D);
+    for (let i = 0; i < D; i++) { x = (x * 1103515245 + 12345) & 0x7fffffff; v[i] = (x / 0x7fffffff) * 2 - 1; }
+    return v; };
+
+  // Neighbour lists become asymmetric once pruning runs, so remove() can leave a
+  // reference to a deleted node. add() then dereferenced it via a `!` assertion
+  // and threw "Cannot read properties of undefined (reading 'vector')".
+  for (const N of [60, 100, 200]) {
+    test(`add ${N}, remove half, add again`, () => {
+      const idx = new VectorIndex({ dimensions: D });
+      for (let i = 0; i < N; i++) idx.add({ id: 'n' + i, vector: rv(i + 1) });
+      for (let i = 0; i < N / 2; i++) idx.remove('n' + i);
+      assert.doesNotThrow(() => idx.add({ id: 'later', vector: rv(999) }));
+      assert.ok(idx.search(rv(7), 5).length > 0);
+    });
+  }
+  test('search and remove are safe on an empty index', () => {
+    const idx = new VectorIndex({ dimensions: D });
+    assert.deepEqual(idx.search(rv(1), 5), []);
+    assert.equal(idx.remove('nope'), false);
+  });
+});
+
+describe('regression: vector indexing errors never escape as unhandled rejections', () => {
+  test('removeDocument then addDocument stays stable and is awaitable', async () => {
+    const s = new GhostSearch({ fields: ['title'] });
+    await s.enableSemanticSearch({ dimensions: 64 });
+    for (let i = 0; i < 120; i++) s.addDocument({ id: 'd' + i, title: 'document ' + i + ' topic ' + (i % 7) });
+    await s.whenIndexed();
+    assert.equal(s.vectorIndexSize, 120, 'whenIndexed() must flush pending vector writes');
+    for (let i = 0; i < 60; i++) s.removeDocument('d' + i);
+    s.addDocument({ id: 'later', title: 'a new document about topic 3' });
+    await s.whenIndexed();
+    assert.equal(s.documentCount, 61);
+    assert.equal(s.vectorIndexSize, 61);
+  });
+});
