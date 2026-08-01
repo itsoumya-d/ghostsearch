@@ -1,8 +1,8 @@
 <!--
 // Copyright (c) 2024-2026 Soumya Debnath. All Rights Reserved.
-// Licensed under the Business Source License 1.1 (BSL 1.1).
-// See LICENSE file for details. Production use requires a paid license.
-// Contact: soumyadebnath1661@gmail.com | +91 7031648617
+// Dual-licensed: AGPL-3.0-or-later (free, see LICENSE) OR a commercial licence
+// (see COMMERCIAL_LICENSE.md) if you cannot meet the AGPL's source-disclosure terms.
+// Contact: soumyadebnath1661@gmail.com
 -->
 
 # 👻 GhostSearch
@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/license-BSL%201.1-blue" alt="License: BSL 1.1">
+  <img src="https://img.shields.io/badge/License-AGPL_v3-blue" alt="License: AGPL v3">
   <img src="https://img.shields.io/badge/status-pre--release-orange" alt="Status: pre-release">
   <img src="https://img.shields.io/badge/tests-37%20passing-brightgreen" alt="Tests: 37 passing">
   <img src="https://img.shields.io/badge/npm-not%20yet%20published-lightgrey" alt="npm: not yet published">
@@ -626,24 +626,29 @@ plain Node.
 Created and maintained by **Soumya Debnath**.
 
 - 📧 Email: [soumyadebnath1661@gmail.com](mailto:soumyadebnath1661@gmail.com)
-- 📞 Phone: +91 7031648617
+- 📞 Phone:
 
 *For enterprise support, implementation consulting, or feature requests, please reach out via email.*
 
 ## 📄 License
 
-This project is licensed under the **Business Source License 1.1 (BSL 1.1)** — see
-[LICENSE](LICENSE). It is source-available, **not** OSI open-source: production use of any kind
-requires a paid commercial license. The BSL Change Date is 2030-07-26, after which the licence
-converts to AGPL-3.0.
+**Dual-licensed — choose either:**
 
-For commercial use, see [COMMERCIAL_LICENSE.md](COMMERCIAL_LICENSE.md) or contact the author.
+1. **[AGPL-3.0-or-later](LICENSE)** — free for any purpose, including commercial and production
+   use. No payment, no permission, no key required. The obligation it carries: if you modify this
+   software and let users interact with it over a network, you must offer those users your modified
+   source under the same licence.
 
----
+2. **[Commercial licence](COMMERCIAL_LICENSE.md)** — for organisations that cannot or prefer not to
+   meet the AGPL's source-disclosure obligation. This buys an exception, not access.
 
-## ⚖️ License — Business Source License 1.1
+Contributions are accepted under AGPL-3.0-or-later.
 
-> **Source-available, NOT open-source. All production use requires a paid license.**
+## ⚖️ Commercial licence (optional)
+
+> **This software is free under [AGPL-3.0-or-later](LICENSE) — including for commercial and
+> production use.** The prices below buy one specific thing: an exception to the AGPL's requirement
+> that you publish your modifications if you run a modified version as a network service.
 > Replaces: Algolia, Elasticsearch
 
 | Tier | Price | For |
@@ -654,8 +659,8 @@ For commercial use, see [COMMERCIAL_LICENSE.md](COMMERCIAL_LICENSE.md) or contac
 | **OEM / White-Label** | $19,999/year | Embed in your product |
 | **Full IP Buyout** | $750,000 | Complete ownership transfer |
 
-**Free use limited to:** Personal evaluation, academic research, contributing via PRs.
+**Free under AGPL-3.0-or-later:** any use, including production and commercial, provided you meet the AGPL's terms.
 
-📧 [soumyadebnath1661@gmail.com](mailto:soumyadebnath1661@gmail.com) · 📞 [+91 7031648617](tel:+917031648617) · 🐙 [github.com/itsoumya-d](https://github.com/itsoumya-d)
+📧 [soumyadebnath1661@gmail.com](mailto:soumyadebnath1661@gmail.com) · 🐙 [github.com/itsoumya-d](https://github.com/itsoumya-d)
 
 © 2024-2026 Soumya Debnath. All Rights Reserved.
