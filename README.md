@@ -642,7 +642,7 @@ Created and maintained by **Soumya Debnath**.
 2. **[Commercial licence](COMMERCIAL_LICENSE.md)** — for organisations that cannot or prefer not to
    meet the AGPL's source-disclosure obligation. This buys an exception, not access.
 
-Contributions are accepted under AGPL-3.0-or-later.
+Contributions are accepted under AGPL-3.0-or-later. Full terms: [LICENSING.md](LICENSING.md).
 
 ## ⚖️ Commercial licence (optional)
 
