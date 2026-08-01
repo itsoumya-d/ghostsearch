@@ -3,7 +3,14 @@
 // See LICENSE file for details. Production use requires a paid license.
 // Contact: soumyadebnath1661@gmail.com | +91 7031648617
 
-import { Document } from 'flexsearch';
+// flexsearch 0.7.x is CommonJS and exposes no named ESM exports. Importing
+// `{ Document }` directly breaks every ESM consumer (Node ESM, SSR, Next.js)
+// with "Named export 'Document' not found". Default-import the module object
+// and read the constructor off it — works under both CJS and ESM.
+import FlexSearchModule from 'flexsearch';
+
+const FlexSearch: any = (FlexSearchModule as any)?.default ?? FlexSearchModule;
+const Document: any = FlexSearch.Document;
 import { GhostSearchOptions, SearchOptions, SearchResult, GhostDocument } from './types';
 import { highlightText } from './highlighter';
 
