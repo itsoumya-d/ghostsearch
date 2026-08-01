@@ -47,11 +47,33 @@ index; see [Export / Import](#6-export--import-pre-building-index).)
 
 ---
 
-## 🧠 Semantic Vector Search & Hybrid Search (Research-Backed)
+## 🧠 Vector & Hybrid Search — experimental, and **not** semantic
 
-GhostSearch features state-of-the-art client-side vector search and hybrid retrieval capabilities, bringing dense vector representations directly to the user's browser.
+> ### ⚠️ Read this before using the vector features
+>
+> **The built-in embedder is not a semantic model.** It is an FNV-1a feature hasher over character
+> n-grams. It has no notion of meaning, and on measured examples it ranks the correct answer *last*:
+>
+> | Pair | Cosine similarity | What a real embedder would do |
+> |---|---|---|
+> | `car` ↔ `automobile` | **−0.04** | high — synonyms |
+> | `car` ↔ `banana` | **+0.09** | near zero — unrelated |
+> | `mission` ↔ `emission` | **0.92** | low — shared substring, unrelated meaning |
+>
+> End to end, the query `car` ranks *"automobile maintenance guide"* **last and negative**, behind
+> *"kitchen appliance repair"*. Character overlap dominates; meaning is not represented at all.
+>
+> **Do not use these APIs for semantic retrieval.** The vector plumbing (HNSW graph, MRL funnel,
+> score fusion) is real and works as documented — but it is only as good as the vectors you put in,
+> and the built-in embedder is a placeholder. Supplying your own trained embeddings is not yet
+> supported: `modelUrl` and `tokenizerUrl` are accepted and **silently ignored**.
+>
+> **The production-ready part of this library is the full-text engine** (BM25 / inverted index) —
+> see [Performance](#-performance), where the benchmark harness reproduces exactly.
 
-### 📐 Semantic Vector Search (HNSW + Matryoshka MRL)
+The vector layer is retained as an experiment and documented honestly below.
+
+### 📐 Vector index internals (HNSW + Matryoshka MRL)
 - **HNSW graph index**: `VectorIndex.search()` performs a real HNSW greedy-descent traversal.
 - **Matryoshka (MRL) funnel**: `searchMatryoshka()` scores every vector at 64d to build a shortlist,
   then re-ranks the shortlist at full dimension.
@@ -81,8 +103,13 @@ implementation, not aspirations:
 - **No external model runtime is wired up.** `EmbeddingEngineOptions.modelUrl` and `tokenizerUrl`
   are accepted but currently ignored; there is no ONNX / Transformers.js integration point yet.
 
-### 🔬 Research Foundation
-> **Research Citation:**  
+### 🔬 Where the MRL idea comes from
+
+The funnel design follows Matryoshka Representation Learning. **Citing the paper is not a claim that
+this library implements it correctly** — MRL requires embeddings trained with an MRL objective, and
+the built-in hasher is not. As measured above, the funnel therefore loses recall (0.52 vs 1.00)
+rather than saving work.
+
 > Kusupati, A., Singh, G., Bhat, W., et al. (2022). *Matryoshka Representation Learning*. Advances in Neural Information Processing Systems (NeurIPS 2022). [arXiv:2205.13147](https://arxiv.org/abs/2205.13147)
 
 ### 💻 Hybrid Search Usage Example
