@@ -6,6 +6,9 @@
 export * from './types';
 export * from './ghost-search';
 export * from './ghost-worker';
-export * from './index-builder';
 export * from './vector-index';
 export * from './embedding-engine';
+
+// NOTE: IndexBuilder is intentionally NOT exported here. It imports node:fs,
+// which breaks browser bundling for a library whose entire premise is running
+// in the browser. It is available from the 'ghostsearch/node' subpath instead.
