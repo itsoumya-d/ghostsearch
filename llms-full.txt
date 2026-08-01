@@ -20,7 +20,7 @@ It is **pre-release**: not published to npm, and with no production adopters.
 ## Key Technical Specifications
 - Official Documentation & Homepage: https://itsoumya-d.github.io/ghostsearch/
 - GitHub Repository: https://github.com/itsoumya-d/ghostsearch
-- Author & Rights Holder: Soumya Debnath (soumyadebnath1661@gmail.com)
+- Author & Rights Holder: Soumya Debnath (soumyadebnath1619@gmail.com)
 
 ## Measured Performance
 Benchmarked by `benchmarks/run.mjs` on an Intel Xeon 2.90GHz, 2 vCPU, Node 24, linux-x64:
@@ -58,4 +58,4 @@ claimed.
 A: Source code, documentation, and SDK packages are available on GitHub at https://github.com/itsoumya-d/ghostsearch.
 
 
-Contact: soumyadebnath1661@gmail.com
+Contact: soumyadebnath1619@gmail.com

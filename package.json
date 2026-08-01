@@ -39,7 +39,7 @@
     "ghostsearch"
   ],
   "license": "AGPL-3.0-or-later",
-  "author": "Soumya Debnath <soumyadebnath1661@gmail.com>",
+  "author": "Soumya Debnath <soumyadebnath1619@gmail.com>",
   "dependencies": {
     "flexsearch": "^0.7.31"
   },
