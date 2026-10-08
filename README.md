@@ -295,6 +295,10 @@ Performs a search query.
 **SearchResult:**
 Returns an object with `hits` (the matched documents), `totalHits`, `queryTimeMs`, and optional `facets`.
 
+Field scores and exact-match filters are applied before pagination. `totalHits` and facet counts
+describe the complete filtered match set, even when `limit` returns only one page or `offset`
+is beyond the last page. Broad queries therefore aggregate all matches before selecting a page.
+
 #### `suggest(query: string, limit?: number): string[]`
 Returns autocomplete suggestions based on the indexed documents.
 
