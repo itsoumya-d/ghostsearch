@@ -55,9 +55,12 @@ export class SearchEngine<T extends GhostDocument> {
     const limit = opts.limit || 20;
     const offset = opts.offset || 0;
     
-    // FlexSearch document search
+    // Retrieve every matching document per field before scoring and filtering.
+    // A page-sized candidate limit can hide valid filtered hits, undercount
+    // totals/facets, and miss documents whose combined field boosts rank first.
+    // Pagination belongs only in the final slice below.
     const results = this.index.search(query, {
-      limit: limit + offset,
+      limit: this.documents.size,
       suggest: opts.fuzzy ? true : false,
     });
     
