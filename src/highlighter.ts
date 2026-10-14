@@ -22,15 +22,13 @@ export function highlightText(text: string, query: string, tag: string = 'mark')
 
   const safeTag = SAFE_TAG_NAME.test(tag) ? tag : 'mark';
 
-  const terms = query.trim().split(/\s+/).filter(t => t.length > 0);
+  const terms = [...new Set(query.trim().split(/\s+/).filter(t => t.length > 0))]
+    .sort((a, b) => b.length - a.length);
   if (terms.length === 0) return text;
 
-  let highlighted = text;
-
-  for (const term of terms) {
-    const regex = new RegExp(`(${escapeRegExp(term)})`, 'gi');
-    highlighted = highlighted.replace(regex, `<${safeTag}>$1</${safeTag}>`);
-  }
-
-  return highlighted;
+  // Match the original text once. Repeated replacements can match markup we
+  // just inserted (e.g. the query "market mark") and produce broken HTML.
+  // Prefer the longest literal at the same position for overlapping terms.
+  const regex = new RegExp(terms.map(escapeRegExp).join('|'), 'gi');
+  return text.replace(regex, match => `<${safeTag}>${match}</${safeTag}>`);
 }

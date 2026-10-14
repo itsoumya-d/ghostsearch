@@ -123,6 +123,25 @@ describe('regression: highlight must not compile the query as a regex', () => {
   });
 });
 
+describe('regression: highlight original text only once', () => {
+  for (const [title, query, tag, expected] of [
+    ['market mark', 'market mark', 'mark', '<mark>market</mark> <mark>mark</mark>'],
+    ['apple', 'apple apple', 'mark', '<mark>apple</mark>'],
+    ['MARKET Mark', 'mark market', 'mark', '<mark>MARKET</mark> <mark>Mark</mark>'],
+    ['strong string', 'strong string', 'strong', '<strong>strong</strong> <strong>string</strong>'],
+    ['learning learn', 'learn learning', 'em', '<em>learning</em> <em>learn</em>'],
+  ]) {
+    test(`literal query ${JSON.stringify(query)} does not re-highlight inserted tags`, () => {
+      const search = new GhostSearch({ fields: ['title'] });
+      search.addDocument({ id: 'highlight-regression', title });
+      const result = search.search(query, { highlight: true, highlightTag: tag });
+      assert.equal(result.hits.length, 1);
+      assert.equal(result.hits[0].highlights.title, expected);
+      assert.equal(result.hits[0].document.title, title, 'document text must stay unchanged');
+    });
+  }
+});
+
 describe('regression: SearchOptions.query must stay optional', () => {
   // Declaring it required made every documented search() call a TS2345 error.
   test('search(query, options) works without repeating the query', () => {
