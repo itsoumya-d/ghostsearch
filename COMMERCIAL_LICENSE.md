@@ -13,7 +13,7 @@
 ---
 
 
-> Replaces: Algolia ($50K+/year enterprise), Elasticsearch (infra + ops cost), Typesense, Meilisearch.
+> Comparable systems: Algolia ($50K+/year enterprise), Elasticsearch (infra + ops cost), Typesense, Meilisearch.
 > GhostSearch runs entirely in the browser — zero server, zero API calls, sub-millisecond results.
 
 ## Pricing

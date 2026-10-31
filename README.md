@@ -653,7 +653,7 @@ Contributions are accepted under AGPL-3.0-or-later. Full terms: [LICENSING.md](L
 > **This software is free under [AGPL-3.0-or-later](LICENSE) — including for commercial and
 > production use.** The prices below buy one specific thing: an exception to the AGPL's requirement
 > that you publish your modifications if you run a modified version as a network service.
-> Replaces: Algolia, Elasticsearch
+> Comparable systems: Algolia, Elasticsearch
 
 | Tier | Price | For |
 |:-----|:------|:----|

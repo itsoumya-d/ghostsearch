@@ -1,7 +1,7 @@
 {
   "name": "ghostsearch",
   "version": "1.0.0",
-  "description": "Sub-millisecond client-side full-text search engine. Zero server. Replaces Algolia.",
+  "description": "Sub-millisecond client-side full-text search engine with zero server dependency.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
