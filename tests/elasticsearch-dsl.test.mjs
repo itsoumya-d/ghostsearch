@@ -1,6 +1,6 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { GhostSearch, parseElasticsearchDSL } from '../dist/index.mjs';
+import { GhostSearch, parseElasticsearchDSL, formatQueryDSLSummary } from '../dist/index.mjs';
 
 const sampleDocs = [
   { id: '1', title: 'Elasticsearch Architecture', content: 'Distributed search engine with Lucene indices and clusters', category: 'search', stars: 120 },
@@ -120,5 +120,14 @@ describe('GhostSearch.searchDSL execution', () => {
     };
     const res = gs.searchDSL(dsl);
     assert.equal(typeof res.totalHits, 'number');
+  });
+
+  test('formats query DSL summary string', () => {
+    const dsl = {
+      query: { match: { title: 'Distributed Systems' } },
+      size: 10
+    };
+    const summary = formatQueryDSLSummary(dsl);
+    assert.equal(summary, 'query="Distributed Systems", limit=10');
   });
 });

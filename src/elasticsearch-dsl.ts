@@ -194,3 +194,24 @@ export function parseElasticsearchDSL(payload: ElasticsearchQueryPayload): Parse
     filterPredicate: compositePredicate,
   };
 }
+
+/**
+ * Format a human-readable summary of parsed query DSL filters and terms.
+ */
+export function formatQueryDSLSummary(payload: ElasticsearchQueryPayload): string {
+  const parsed = parseElasticsearchDSL(payload);
+  const parts: string[] = [];
+  if (parsed.queryString) {
+    parts.push(`query="${parsed.queryString}"`);
+  }
+  if (parsed.options.limit !== undefined) {
+    parts.push(`limit=${parsed.options.limit}`);
+  }
+  if (parsed.options.offset !== undefined) {
+    parts.push(`offset=${parsed.options.offset}`);
+  }
+  if (parsed.options.fuzzy) {
+    parts.push('fuzzy=true');
+  }
+  return parts.join(', ') || 'match_all';
+}
