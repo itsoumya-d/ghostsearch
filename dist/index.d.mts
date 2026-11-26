@@ -217,6 +217,10 @@ interface ParsedElasticsearchQuery {
  * options, and document filter predicates.
  */
 declare function parseElasticsearchDSL(payload: ElasticsearchQueryPayload): ParsedElasticsearchQuery;
+/**
+ * Format a human-readable summary of parsed query DSL filters and terms.
+ */
+declare function formatQueryDSLSummary(payload: ElasticsearchQueryPayload): string;
 
 interface SemanticSearchOptions {
     query: string;
@@ -320,4 +324,4 @@ declare class GhostWorker<T extends GhostDocument> {
     search(query: string, options?: SearchOptions): Promise<SearchResult<T>>;
 }
 
-export { DEFAULT_WORKER_TIMEOUT_MS, type ElasticsearchBoolQuery, type ElasticsearchMatchQuery, type ElasticsearchMultiMatchQuery, type ElasticsearchQueryPayload, type ElasticsearchRangeQuery, type ElasticsearchTermQuery, type ElasticsearchTermsQuery, EmbeddingEngine, type EmbeddingEngineOptions, type EmbeddingResult, GhostDocument, GhostSearch, GhostSearchOptions, GhostWorker, type HybridSearchResult, type ParsedElasticsearchQuery, SearchOptions, SearchResult, type SemanticSearchOptions, type VectorEntry, VectorIndex, type VectorIndexOptions, type VectorSearchResult, parseElasticsearchDSL };
+export { DEFAULT_WORKER_TIMEOUT_MS, type ElasticsearchBoolQuery, type ElasticsearchMatchQuery, type ElasticsearchMultiMatchQuery, type ElasticsearchQueryPayload, type ElasticsearchRangeQuery, type ElasticsearchTermQuery, type ElasticsearchTermsQuery, EmbeddingEngine, type EmbeddingEngineOptions, type EmbeddingResult, GhostDocument, GhostSearch, GhostSearchOptions, GhostWorker, type HybridSearchResult, type ParsedElasticsearchQuery, SearchOptions, SearchResult, type SemanticSearchOptions, type VectorEntry, VectorIndex, type VectorIndexOptions, type VectorSearchResult, formatQueryDSLSummary, parseElasticsearchDSL };
