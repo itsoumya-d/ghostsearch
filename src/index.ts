@@ -8,6 +8,7 @@ export * from './ghost-search';
 export * from './ghost-worker';
 export * from './vector-index';
 export * from './embedding-engine';
+export * from './elasticsearch-dsl';
 
 // NOTE: IndexBuilder is intentionally NOT exported here. It imports node:fs,
 // which breaks browser bundling for a library whose entire premise is running

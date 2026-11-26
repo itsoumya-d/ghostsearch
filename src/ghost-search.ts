@@ -8,6 +8,7 @@ import { GhostSearchOptions, SearchOptions, SearchResult, GhostDocument } from '
 import { SearchEngine } from './search-engine';
 import { VectorIndex, VectorSearchResult, VectorIndexOptions } from './vector-index';
 import { EmbeddingEngine, EmbeddingEngineOptions } from './embedding-engine';
+import { parseElasticsearchDSL, ElasticsearchQueryPayload } from './elasticsearch-dsl';
 
 export interface SemanticSearchOptions {
   query: string;
@@ -109,6 +110,24 @@ export class GhostSearch<T extends GhostDocument> {
 
   search(query: string, options?: SearchOptions): SearchResult<T> {
     return this.engine.search(query, options);
+  }
+
+  /**
+   * Execute an Elasticsearch Query DSL payload against the GhostSearch index.
+   * Parses match, multi_match, bool, term, terms, and range query clauses.
+   */
+  searchDSL(dsl: ElasticsearchQueryPayload): SearchResult<T> {
+    const parsed = parseElasticsearchDSL(dsl);
+    const result = this.search(parsed.queryString, parsed.options);
+    if (!parsed.filterPredicate) {
+      return result;
+    }
+    const filteredHits = result.hits.filter(hit => parsed.filterPredicate!(hit.document));
+    return {
+      ...result,
+      hits: filteredHits,
+      totalHits: filteredHits.length,
+    };
   }
 
   suggest(query: string, limit?: number): string[] {

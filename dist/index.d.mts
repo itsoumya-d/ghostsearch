@@ -1,4 +1,4 @@
-import { G as GhostDocument, S as SearchOptions, b as SearchResult, a as GhostSearchOptions } from './types-DB5UXTjD.mjs';
+import { S as SearchOptions, G as GhostDocument, b as SearchResult, a as GhostSearchOptions } from './types-DB5UXTjD.mjs';
 
 /**
  * HNSW (Hierarchical Navigable Small World) vector index for client-side
@@ -155,6 +155,69 @@ declare class EmbeddingEngine {
     private l2Normalize;
 }
 
+interface ElasticsearchMatchQuery {
+    [field: string]: string | {
+        query: string;
+        fuzziness?: number | string;
+        boost?: number;
+    };
+}
+interface ElasticsearchMultiMatchQuery {
+    query: string;
+    fields?: string[];
+    fuzziness?: number | string;
+}
+interface ElasticsearchTermQuery {
+    [field: string]: any;
+}
+interface ElasticsearchTermsQuery {
+    [field: string]: any[];
+}
+interface ElasticsearchRangeQuery {
+    [field: string]: {
+        gte?: number | string;
+        lte?: number | string;
+        gt?: number | string;
+        lt?: number | string;
+    };
+}
+interface ElasticsearchBoolQuery {
+    must?: any | any[];
+    filter?: any | any[];
+    should?: any | any[];
+    must_not?: any | any[];
+}
+interface ElasticsearchQueryPayload {
+    query?: {
+        match?: ElasticsearchMatchQuery;
+        multi_match?: ElasticsearchMultiMatchQuery;
+        term?: ElasticsearchTermQuery;
+        terms?: ElasticsearchTermsQuery;
+        range?: ElasticsearchRangeQuery;
+        bool?: ElasticsearchBoolQuery;
+        match_all?: Record<string, any>;
+        [key: string]: any;
+    };
+    size?: number;
+    from?: number;
+    highlight?: {
+        fields?: Record<string, any>;
+        pre_tags?: string[];
+        post_tags?: string[];
+    };
+    sort?: any;
+}
+interface ParsedElasticsearchQuery {
+    queryString: string;
+    options: SearchOptions;
+    filterPredicate?: (doc: any) => boolean;
+}
+/**
+ * Parse an Elasticsearch Query DSL payload into GhostSearch query terms,
+ * options, and document filter predicates.
+ */
+declare function parseElasticsearchDSL(payload: ElasticsearchQueryPayload): ParsedElasticsearchQuery;
+
 interface SemanticSearchOptions {
     query: string;
     limit?: number;
@@ -199,6 +262,11 @@ declare class GhostSearch<T extends GhostDocument> {
      */
     whenIndexed(): Promise<void>;
     search(query: string, options?: SearchOptions): SearchResult<T>;
+    /**
+     * Execute an Elasticsearch Query DSL payload against the GhostSearch index.
+     * Parses match, multi_match, bool, term, terms, and range query clauses.
+     */
+    searchDSL(dsl: ElasticsearchQueryPayload): SearchResult<T>;
     suggest(query: string, limit?: number): string[];
     exportIndex(): string;
     importIndex(data: string): void;
@@ -252,4 +320,4 @@ declare class GhostWorker<T extends GhostDocument> {
     search(query: string, options?: SearchOptions): Promise<SearchResult<T>>;
 }
 
-export { DEFAULT_WORKER_TIMEOUT_MS, EmbeddingEngine, type EmbeddingEngineOptions, type EmbeddingResult, GhostDocument, GhostSearch, GhostSearchOptions, GhostWorker, type HybridSearchResult, SearchOptions, SearchResult, type SemanticSearchOptions, type VectorEntry, VectorIndex, type VectorIndexOptions, type VectorSearchResult };
+export { DEFAULT_WORKER_TIMEOUT_MS, type ElasticsearchBoolQuery, type ElasticsearchMatchQuery, type ElasticsearchMultiMatchQuery, type ElasticsearchQueryPayload, type ElasticsearchRangeQuery, type ElasticsearchTermQuery, type ElasticsearchTermsQuery, EmbeddingEngine, type EmbeddingEngineOptions, type EmbeddingResult, GhostDocument, GhostSearch, GhostSearchOptions, GhostWorker, type HybridSearchResult, type ParsedElasticsearchQuery, SearchOptions, SearchResult, type SemanticSearchOptions, type VectorEntry, VectorIndex, type VectorIndexOptions, type VectorSearchResult, parseElasticsearchDSL };
